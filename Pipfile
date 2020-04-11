@@ -7,7 +7,7 @@ verify_ssl = true
 
 [packages]
 python-socketio = "*"
-django = "*"
+django = "==3.0"
 
 [requires]
 python_version = "3.8"
