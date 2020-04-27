@@ -20,6 +20,9 @@ $ docker-compose up
 $ docker-compose down
 ```
 
+## Documents
+* [Architechture](https://docs.google.com/presentation/d/1YMLNzz-PrKDV_IeKXlmBPZj72ZlB2rwqpRv3hZfhZWI/edit?usp=sharing)
+
 ## Datasets
 [datasets - Google Drive](https://drive.google.com/drive/folders/12bvEe6wix1u_lyH9dAJ3C63wM6HOZ1tk)
 
