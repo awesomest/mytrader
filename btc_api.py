@@ -23,7 +23,7 @@ cursor = conn.cursor()
 
 def insert_candlestic(data: list):
     query = ("INSERT INTO candlestick"
-             "(open, close, high, low, volume, unixtime) "
+             "(open, high, low, close, volume, unixtime) "
              "VALUES (%s, %s, %s, %s, %s, %s)")
     cursor.executemany(query, data)
     conn.commit()
