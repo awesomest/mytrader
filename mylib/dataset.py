@@ -28,7 +28,8 @@ class BitcoinDataset:
             if index + minutes_of_hours >= len(self.data):
                 break
 
-            data_in_hours = self.data[index:-1]
+            last_index = index + minutes_of_hours
+            data_in_hours = self.data[index:last_index]
             current_average = (row['high'] + row['low']) / 2
 
             highest_index    = data_in_hours['high'].idxmax() # 最大の高値を取得
