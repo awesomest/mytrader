@@ -1,11 +1,21 @@
 from sklearn.linear_model import LinearRegression
 import pickle
 
+
 class BitcoinRegression:
-    def __init__(self, csv):
+    def __init__(self):
+        self.columns = None
+        self.data = None
+        self.model = None
+        self.data_train = None
+        self.data_test = None
+        self.label_train = None
+        self.label_test = None
+
+    def set_dataset(self, csv):
         # TODO: select columus
         self.columns = ['unixtime', 'open', 'close', 'low', 'high', 'volume', 'diff1', 'diff2', 'result']
-        csv = csv[self.columns][2:-60*6] # remove rows includes NaN or result=0
+        csv = csv[self.columns][2:-60*6]  # remove rows includes NaN or result=0
         self.data = csv.sort_values(['unixtime'])
 
     def predict(self, x):

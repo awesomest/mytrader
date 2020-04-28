@@ -1,5 +1,6 @@
 TRADING_FEE = 0.0012
 
+
 class BitcoinSimulator:
     def __init__(self, yen):
         self.user = BitcoinUser(yen)
@@ -38,6 +39,7 @@ class BitcoinSimulator:
             return -1
 
         return 0
+
 
 class BitcoinUser:
     def __init__(self, yen):
