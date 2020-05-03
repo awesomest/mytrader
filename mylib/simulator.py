@@ -1,4 +1,4 @@
-TRADING_FEE = 0.0012
+from mylib import bitbank
 
 
 class BitcoinSimulator:
@@ -33,9 +33,9 @@ class BitcoinSimulator:
              1 : Means buy
         """
 
-        if self.user.yen > 0 and data['predict'] / data['close'] > 1 + TRADING_FEE:
+        if self.user.yen > 0 and data['predict'] / data['close'] > 1 + bitbank.TRADING_FEE:
             return 1
-        elif self.user.btc > 0 and data['predict'] / data['close'] < 1 - TRADING_FEE:
+        elif self.user.btc > 0 and data['predict'] / data['close'] < 1 - bitbank.TRADING_FEE:
             return -1
 
         return 0
@@ -49,12 +49,12 @@ class BitcoinUser:
 
     def buy_btc(self, price, amount):
         self.yen -= price * amount
-        self.btc += amount * (1 - TRADING_FEE)
+        self.btc += amount * (1 - bitbank.TRADING_FEE)
         self.update_total_assets(price)
 
     def sell_btc(self, price, amount):
         self.btc -= amount
-        self.yen += price * amount * (1 - TRADING_FEE)
+        self.yen += price * amount * (1 - bitbank.TRADING_FEE)
         self.update_total_assets(price)
 
     def update_total_assets(self, price):

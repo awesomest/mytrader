@@ -1,3 +1,4 @@
+from mylib import bitbank
 from datetime import datetime as dt
 
 minutes_of_hours = 60 * 6  # TODO: 最適な時間を要調査
@@ -45,8 +46,8 @@ class BitcoinDataset:
             highest_index = data_in_hours['high'].idxmax()  # 最大の高値を取得
             highest = data_in_hours['high'][highest_index]
             highest_unixtime = data_in_hours['unixtime'][highest_index]
-            # 5%未満の変動は無視する
-            if highest < current_average * 1.05:
+            # 売買手数料未満の変動は無視する
+            if highest < current_average * (1 + bitbank.TRADING_FEE):
                 highest_gradient = float('inf')
             else:
                 gradient = calc_gradient(row['unixtime'], current_average, highest_unixtime, highest)
@@ -55,8 +56,8 @@ class BitcoinDataset:
             lowest_index = data_in_hours['low'].idxmin()  # 最小の安値を取得
             lowest = data_in_hours['low'][lowest_index]
             lowest_unixtime = data_in_hours['unixtime'][lowest_index]
-            # 5%未満の変動は無視する
-            if lowest > current_average * 0.95:
+            # 売買手数料未満の変動は無視する
+            if lowest > current_average * (1 - bitbank.TRADING_FEE):
                 lowest_gradient = float('inf')
             else:
                 gradient = -1 * calc_gradient(row['unixtime'], current_average, lowest_unixtime, lowest)
