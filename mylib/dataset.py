@@ -15,34 +15,35 @@ class BitcoinDataset:
         self.data = None
 
     def set_dataset(self, csv):
-        csv = csv.reset_index()
-        csv = csv[["unixtime", "open", "close", "low", "high", "volume"]]
         self.data = csv.sort_values(["unixtime"])
-        self.format()
+        self.init_columns()
+        self.add_trend()
         self.add_result()
         self.add_column_diff_all(3)
         self.remove_missing_rows()
 
-    def format(self):
+    def init_columns(self):
         self.data["timestamp"] = [dt.fromtimestamp(l) for l in self.data["unixtime"]]
         self.data["result"] = 0.0
 
     def remove_missing_rows(self):
-        last = max(0, len(self.data) - MINUTES_OF_HOURS)
-        self.data = self.data.loc[2:last]  # remove rows includes NaN or result=0
+        self.data.dropna(inplace=True)
 
-    # 目的変数を設定
-    def add_result(self):
+    def add_trend(self):
         for index, _ in self.data.iterrows():
-            if index + MINUTES_OF_HOURS >= len(self.data):
-                break
+            first_index = index - MINUTES_OF_HOURS
+            if first_index < 0:
+                continue
 
-            last_index = index + MINUTES_OF_HOURS
-            data_in_hours = self.data[index:last_index]
+            data_in_hours = self.data[first_index:index]
 
             _x = list(range(len(data_in_hours["unixtime"])))
             trend_line = linregress(x=_x, y=data_in_hours["close"])
-            self.data.at[index, "result"] = trend_line[0]
+            self.data.at[index, "trend"] = trend_line[0]
+
+    # 目的変数を設定
+    def add_result(self):
+        self.data["result"] = self.data["trend"].shift(-1 * MINUTES_OF_HOURS)
 
     def add_column_diff_all(self, _n):
         for i in list(range(1, _n)):
