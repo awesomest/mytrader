@@ -1,4 +1,4 @@
-from mylib import bitbank
+from mylib import bitbank  # pylint: disable=import-error
 
 
 class BitcoinSimulator:
@@ -7,17 +7,17 @@ class BitcoinSimulator:
 
     def simulate(self, data, model):
         predict_data = model.predict(data)
-        data['predict'] = predict_data
+        data["predict"] = predict_data
         assets = []
 
-        for index, row in data.iterrows():
-            d = self.decide_action(row)
-            if d == 1:
-                amount = self.user.yen / row['close']
-                self.user.buy_btc(row['close'], amount)
-            elif d == -1:
+        for _, row in data.iterrows():
+            action = self.decide_action(row)
+            if action == 1:
+                amount = self.user.yen / row["close"]
+                self.user.buy_btc(row["close"], amount)
+            elif action == -1:
                 amount = self.user.btc
-                self.user.sell_btc(row['close'], amount)
+                self.user.sell_btc(row["close"], amount)
 
             assets.append(self.user.total)
 
@@ -33,25 +33,27 @@ class BitcoinSimulator:
              1 : Means buy
         """
 
-        if self.user.yen > 0 and data['predict'] > 0:  # 上昇トレンド
-            return 1
-        elif self.user.btc > 0 and data['predict'] < 0:  # 下降トレンド
-            return -1
+        if data["predict"] > 0:  # 上昇トレンド
+            if self.user.yen > 0:
+                return 1
+        if data["predict"] < 0:  # 下降トレンド
+            if self.user.btc > 0:
+                return -1
 
         return 0
 
 
 class BitcoinUser:
     def __init__(self, yen):
-        self.yen = yen       # 現在の円価格
-        self.btc = 0         # 現在のBitCoin価格
-        self.total = yen     # 現在の総資産額
-        self.target = 0      # 次の予定売買価格
+        self.yen = yen  # 現在の円価格
+        self.btc = 0  # 現在のBitCoin価格
+        self.total = yen  # 現在の総資産額
+        self.target = 0  # 次の予定売買価格
         self.traded_btc = 0  # 前回の取引価格
         """
         diff_target = |target - btc|
         diff_current = |target - traded_btc|
-        
+
         action_chance = diff_current / diff_target # 理想値との差のうち、どの程度近づいているか
         """
 
