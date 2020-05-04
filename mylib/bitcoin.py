@@ -25,10 +25,12 @@ class BitcoinRegression:
         self.model = LinearRegression()
         self.model.fit(self.data_train, self.label_train)
 
+    # TODO: Put it out of class
     def load_model(self, name):
         with open(name, mode='rb') as f:
             self.model = pickle.load(f)
 
+    # TODO: Put it out of class
     def save_model(self, name):
         with open(name, mode='wb') as f:
             pickle.dump(self.model, f)
