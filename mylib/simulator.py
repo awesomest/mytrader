@@ -51,6 +51,7 @@ class BitcoinUser:
         self.target = 0  # 次の予定売買価格
         self.traded_btc = 0  # 前回の取引価格
         """
+        TODO:
         diff_target = |target - btc|
         diff_current = |target - traded_btc|
 

@@ -1,10 +1,8 @@
-import pickle
 from sklearn.linear_model import LinearRegression  # pylint: disable=import-error
 
 
 class BitcoinRegression:
     def __init__(self):
-        self.columns = None
         self.data = None
         self.model = None
         self.data_train = None
@@ -13,36 +11,11 @@ class BitcoinRegression:
         self.label_test = None
 
     def set_dataset(self, csv):
-        # TODO: select columus
-        self.columns = [
-            "unixtime",
-            "open",
-            "close",
-            "low",
-            "high",
-            "volume",
-            "diff1",
-            "diff2",
-            "result",
-        ]
         self.data = csv.sort_values(["unixtime"])
-
-    def predict(self, data):
-        return self.model.predict(data)
 
     def train(self):
         self.model = LinearRegression()
         self.model.fit(self.data_train, self.label_train)
-
-    # TODO: Put it out of class
-    def load_model(self, name):
-        with open(name, mode="rb") as file:
-            self.model = pickle.load(file)
-
-    # TODO: Put it out of class
-    def save_model(self, name):
-        with open(name, mode="wb") as file:
-            pickle.dump(self.model, file)
 
     def calc_avg_pred(self):
         sum_score = 0
@@ -69,8 +42,17 @@ class BitcoinRegression:
         test_ratio: float
         """
 
-        columns = self.columns.copy()
-        columns.remove("result")
+        # TODO: select columns
+        columns = [
+            "unixtime",
+            "open",
+            "close",
+            "low",
+            "high",
+            "volume",
+            "diff1",
+            "diff2",
+        ]
 
         test_start = int(len(self.data) * start_ratio)
         test_end = test_start + int(len(self.data) * test_ratio)
