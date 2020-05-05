@@ -43,16 +43,8 @@ class BitcoinRegression:
         """
 
         # TODO: select columns
-        columns = [
-            "unixtime",
-            "open",
-            "close",
-            "low",
-            "high",
-            "volume",
-            "diff1",
-            "diff2",
-        ]
+        columns = self.data.columns
+        columns = columns.drop(["result", "timestamp"])
 
         test_start = int(len(self.data) * start_ratio)
         test_end = test_start + int(len(self.data) * test_ratio)

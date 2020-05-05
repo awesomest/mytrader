@@ -19,7 +19,7 @@ class BitcoinDataset:
         self.init_columns()
         self.add_trend()
         self.add_result()
-        self.add_column_diff_all(3)
+        self.add_column_latest_close()
         self.remove_missing_rows()
 
     def init_columns(self):
@@ -45,10 +45,8 @@ class BitcoinDataset:
     def add_result(self):
         self.data["result"] = self.data["trend"].shift(-1 * MINUTES_OF_HOURS)
 
-    def add_column_diff_all(self, _n):
-        for i in list(range(1, _n)):
-            self.set_column_diff_i(i)
-
-    def set_column_diff_i(self, i):
-        name = "diff" + str(i)
-        self.data[name] = self.data["open"].shift(i)
+    def add_column_latest_close(self):
+        minute_list = [1, 2, 5, 10, 15, 30, 60, 120, 240, 480, 720, 1440, 2880, 10080]
+        for i in minute_list:
+            name = "close" + str(i)
+            self.data[name] = self.data["close"].shift(i)
