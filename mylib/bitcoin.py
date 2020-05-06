@@ -1,6 +1,31 @@
 from sklearn.linear_model import LinearRegression  # pylint: disable=import-error
 from sklearn.model_selection import train_test_split  # pylint: disable=import-error
 
+TRAIN_COLUMNS = [
+    "day",
+    "weekday",
+    "second",
+    "volume",
+    "high_ratio",
+    "low_ratio",
+    "close_ratio",
+    "trend",
+    "close_ratio1",
+    "close_ratio2",
+    "close_ratio5",
+    "close_ratio10",
+    "close_ratio15",
+    "close_ratio30",
+    "close_ratio60",
+    "close_ratio120",
+    "close_ratio240",
+    "close_ratio480",
+    "close_ratio720",
+    "close_ratio1440",
+    "close_ratio2880",
+    "close_ratio10080",
+]
+
 
 class BitcoinRegression:
     def __init__(self):
@@ -10,30 +35,9 @@ class BitcoinRegression:
         self.data_test = None
         self.label_train = None
         self.label_test = None
-        self.train_columns = [
-            "volume",
-            "high_ratio",
-            "low_ratio",
-            "close_ratio",
-            "trend",
-            "close_ratio1",
-            "close_ratio2",
-            "close_ratio5",
-            "close_ratio10",
-            "close_ratio15",
-            "close_ratio30",
-            "close_ratio60",
-            "close_ratio120",
-            "close_ratio240",
-            "close_ratio480",
-            "close_ratio720",
-            "close_ratio1440",
-            "close_ratio2880",
-            "close_ratio10080",
-        ]
 
     def set_dataset(self, csv):
-        self.data = csv.sort_values(["unixtime"])
+        self.data = csv
 
     def train(self):
         self.model = LinearRegression()
@@ -52,7 +56,7 @@ class BitcoinRegression:
         return sum_score / times
 
     def set_train_test_dataset(self, test_ratio):
-        _x = self.data[self.train_columns]
+        _x = self.data[TRAIN_COLUMNS]
         _y = self.data["result"]
         (
             self.data_train,

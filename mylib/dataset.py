@@ -1,4 +1,5 @@
 from datetime import datetime as dt
+import pandas as pd  # pylint: disable=import-error
 from scipy.stats import linregress  # pylint: disable=import-error
 
 MINUTES_OF_HOURS = 60 * 1  # TODO: 最適な時間を要調査
@@ -16,15 +17,19 @@ class BitcoinDataset:
 
     def set_dataset(self, csv):
         self.data = csv.sort_values(["unixtime"])
-        self.init_columns()
+        self.add_time_columns()
         self.convert_hlc_to_ratio()
         self.add_trend()
         self.add_result()
         self.add_column_latest_close()
         self.remove_missing_rows()
 
-    def init_columns(self):
-        self.data["timestamp"] = [dt.fromtimestamp(l) for l in self.data["unixtime"]]
+    def add_time_columns(self):
+        timestamp = pd.Series([dt.fromtimestamp(i) for i in self.data["unixtime"]])
+        self.data["day"] = timestamp.dt.day
+        self.data["weekday"] = timestamp.dt.dayofweek
+        self.data["second"] = (timestamp.dt.hour * 60 + timestamp.dt.minute) * 60
+        self.data.drop(columns=["unixtime"], inplace=True)
 
     def remove_missing_rows(self):
         # TODO: check also zero
@@ -38,7 +43,7 @@ class BitcoinDataset:
 
             data_in_hours = self.data[first_index:index]
 
-            _x = list(range(len(data_in_hours["unixtime"])))
+            _x = list(range(len(data_in_hours)))
             trend_line = linregress(x=_x, y=data_in_hours["close"])
             self.data.at[index, "trend"] = trend_line[0] / data_in_hours["close"].iat[0]
 

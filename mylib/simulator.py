@@ -1,4 +1,5 @@
 from mylib import bitbank  # pylint: disable=import-error
+from mylib import bitcoin  # pylint: disable=import-error
 
 
 class BitcoinSimulator:
@@ -6,32 +7,11 @@ class BitcoinSimulator:
         self.user = BitcoinUser(yen)
 
     def simulate(self, data, model):
-        train_columns = [
-            "volume",
-            "high_ratio",
-            "low_ratio",
-            "close_ratio",
-            "trend",
-            "close_ratio1",
-            "close_ratio2",
-            "close_ratio5",
-            "close_ratio10",
-            "close_ratio15",
-            "close_ratio30",
-            "close_ratio60",
-            "close_ratio120",
-            "close_ratio240",
-            "close_ratio480",
-            "close_ratio720",
-            "close_ratio1440",
-            "close_ratio2880",
-            "close_ratio10080",
-        ]
-        predict_data = model.predict(data[train_columns])
-        data["predict"] = predict_data
+        data_simulation = data.copy()
+        data_simulation["predict"] = model.predict(data[bitcoin.TRAIN_COLUMNS])
         assets = []
 
-        for _, row in data.iterrows():
+        for _, row in data_simulation.iterrows():
             action = self.decide_action(row)
             if action == 1:
                 amount = self.user.yen / row["close"]
