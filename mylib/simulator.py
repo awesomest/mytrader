@@ -54,10 +54,10 @@ class BitcoinSimulator:
              1 : Means buy
         """
 
-        if data["predict"] > 0:  # 上昇トレンド
+        if data["predict"] > 0.00001:  # upward trend # TODO: Decide the threshold
             if self.user.yen > 0:
                 return 1
-        if data["predict"] < 0:  # 下降トレンド
+        if data["predict"] < 0.00001:  # downward # TODO: Decide the threshold
             if self.user.btc > 0:
                 return -1
 
