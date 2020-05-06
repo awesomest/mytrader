@@ -1,4 +1,5 @@
 from sklearn.linear_model import LinearRegression  # pylint: disable=import-error
+from sklearn.model_selection import train_test_split  # pylint: disable=import-error
 
 
 class BitcoinRegression:
@@ -19,32 +20,17 @@ class BitcoinRegression:
 
     def calc_avg_pred(self):
         sum_score = 0
-        test_percentage = 20
-        test_ratio = test_percentage / 100
-        times = 100 - test_percentage
+        times = 100
         for i in range(times):
-            start_ratio = i / 100
-            self.set_train_test_dataset(start_ratio, test_ratio)
+            self.set_train_test_dataset(0.2)
             self.train()
             ac_score = self.model.score(self.data_test, self.label_test)
+            print(f"score[{i:02}]: {ac_score}")
             sum_score += ac_score
 
         return sum_score / times
 
-    def set_train_test_dataset(self, start_ratio, test_ratio):
-        """
-        テストデータは１つの期間を使用する
-        ランダムに抽出すると、直前・直後のデータがヒントになってしまうから。
-
-        Parameters
-        ----------
-        start_ratio : float
-        test_ratio: float
-        """
-
-        test_start = int(len(self.data) * start_ratio)
-        test_end = test_start + int(len(self.data) * test_ratio)
-
+    def set_train_test_dataset(self, test_ratio):
         train_columns = [
             "volume",
             "high_ratio",
@@ -67,9 +53,11 @@ class BitcoinRegression:
             "close_ratio10080",
         ]
 
-        self.data_train = self.data[train_columns][:test_start]
-        self.data_train = self.data_train.append(self.data[train_columns][test_end:])
-        self.data_test = self.data[train_columns][test_start:test_end]
-        self.label_train = self.data["result"][:test_start]
-        self.label_train = self.label_train.append(self.data["result"][test_end:])
-        self.label_test = self.data["result"][test_start:test_end]
+        _x = self.data[train_columns]
+        _y = self.data["result"]
+        (
+            self.data_train,
+            self.data_test,
+            self.label_train,
+            self.label_test,
+        ) = train_test_split(_x, _y, test_size=test_ratio)
