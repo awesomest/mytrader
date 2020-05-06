@@ -42,16 +42,34 @@ class BitcoinRegression:
         test_ratio: float
         """
 
-        # TODO: select columns
-        columns = self.data.columns
-        columns = columns.drop(["result", "timestamp"])
-
         test_start = int(len(self.data) * start_ratio)
         test_end = test_start + int(len(self.data) * test_ratio)
 
-        self.data_train = self.data[columns][:test_start]
-        self.data_train = self.data_train.append(self.data[columns][test_end:])
-        self.data_test = self.data[columns][test_start:test_end]
+        train_columns = [
+            "volume",
+            "high_ratio",
+            "low_ratio",
+            "close_ratio",
+            "trend",
+            "close_ratio1",
+            "close_ratio2",
+            "close_ratio5",
+            "close_ratio10",
+            "close_ratio15",
+            "close_ratio30",
+            "close_ratio60",
+            "close_ratio120",
+            "close_ratio240",
+            "close_ratio480",
+            "close_ratio720",
+            "close_ratio1440",
+            "close_ratio2880",
+            "close_ratio10080",
+        ]
+
+        self.data_train = self.data[train_columns][:test_start]
+        self.data_train = self.data_train.append(self.data[train_columns][test_end:])
+        self.data_test = self.data[train_columns][test_start:test_end]
         self.label_train = self.data["result"][:test_start]
         self.label_train = self.label_train.append(self.data["result"][test_end:])
         self.label_test = self.data["result"][test_start:test_end]

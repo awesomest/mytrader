@@ -6,7 +6,28 @@ class BitcoinSimulator:
         self.user = BitcoinUser(yen)
 
     def simulate(self, data, model):
-        predict_data = model.predict(data)
+        train_columns = [
+            "volume",
+            "high_ratio",
+            "low_ratio",
+            "close_ratio",
+            "trend",
+            "close_ratio1",
+            "close_ratio2",
+            "close_ratio5",
+            "close_ratio10",
+            "close_ratio15",
+            "close_ratio30",
+            "close_ratio60",
+            "close_ratio120",
+            "close_ratio240",
+            "close_ratio480",
+            "close_ratio720",
+            "close_ratio1440",
+            "close_ratio2880",
+            "close_ratio10080",
+        ]
+        predict_data = model.predict(data[train_columns])
         data["predict"] = predict_data
         assets = []
 

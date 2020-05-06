@@ -17,6 +17,7 @@ class BitcoinDataset:
     def set_dataset(self, csv):
         self.data = csv.sort_values(["unixtime"])
         self.init_columns()
+        self.convert_hlc_to_ratio()
         self.add_trend()
         self.add_result()
         self.add_column_latest_close()
@@ -24,9 +25,9 @@ class BitcoinDataset:
 
     def init_columns(self):
         self.data["timestamp"] = [dt.fromtimestamp(l) for l in self.data["unixtime"]]
-        self.data["result"] = 0.0
 
     def remove_missing_rows(self):
+        # TODO: check also zero
         self.data.dropna(inplace=True)
 
     def add_trend(self):
@@ -39,7 +40,7 @@ class BitcoinDataset:
 
             _x = list(range(len(data_in_hours["unixtime"])))
             trend_line = linregress(x=_x, y=data_in_hours["close"])
-            self.data.at[index, "trend"] = trend_line[0]
+            self.data.at[index, "trend"] = trend_line[0] / data_in_hours["close"].iat[0]
 
     # 目的変数を設定
     def add_result(self):
@@ -48,5 +49,10 @@ class BitcoinDataset:
     def add_column_latest_close(self):
         minute_list = [1, 2, 5, 10, 15, 30, 60, 120, 240, 480, 720, 1440, 2880, 10080]
         for i in minute_list:
-            name = "close" + str(i)
-            self.data[name] = self.data["close"].shift(i)
+            name = "close_ratio" + str(i)
+            self.data[name] = self.data["close_ratio"].shift(i)
+
+    def convert_hlc_to_ratio(self):
+        columns = ["high", "low", "close"]
+        for column in columns:
+            self.data[column + "_ratio"] = self.data[column] / self.data["open"]
