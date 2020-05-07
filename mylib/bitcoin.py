@@ -30,23 +30,23 @@ TRAIN_COLUMNS = [
 class BitcoinRegression:
     def __init__(self, csv):
         self.data = csv
-        self.model = None
         self.data_train = None
         self.data_test = None
         self.label_train = None
         self.label_test = None
 
-    def train(self):
-        self.model = LinearRegression()
-        self.model.fit(self.data_train, self.label_train)
+    def create_model(self):
+        model = LinearRegression()
+        model.fit(self.data_train, self.label_train)
+        return model
 
     def calc_avg_score(self):
         sum_score = 0
         times = 100
         for i in range(times):
             self.set_train_test_dataset(0.2)
-            self.train()
-            score = self.model.score(self.data_test, self.label_test)
+            model = self.create_model()
+            score = model.score(self.data_test, self.label_test)
             print(f"score[{i:03}]: {score}")
             sum_score += score
 
