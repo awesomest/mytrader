@@ -5,12 +5,6 @@ from scipy.stats import linregress  # pylint: disable=import-error
 MINUTES_OF_HOURS = 60 * 1  # TODO: 最適な時間を要調査
 
 
-def calc_gradient(_x1, _y1, _x2, _y2):
-    if _x2 == _x1:
-        return float("inf")
-    return (_y2 - _y1) / (_x2 - _x1)
-
-
 class BitcoinDataset:
     def __init__(self):
         self.data = None
@@ -32,7 +26,6 @@ class BitcoinDataset:
         self.data.drop(columns=["unixtime"], inplace=True)
 
     def remove_missing_rows(self):
-        # TODO: check also zero
         self.data.dropna(inplace=True)
 
     def add_trend(self):
