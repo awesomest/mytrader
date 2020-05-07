@@ -28,16 +28,13 @@ TRAIN_COLUMNS = [
 
 
 class BitcoinRegression:
-    def __init__(self):
-        self.data = None
+    def __init__(self, csv):
+        self.data = csv
         self.model = None
         self.data_train = None
         self.data_test = None
         self.label_train = None
         self.label_test = None
-
-    def set_dataset(self, csv):
-        self.data = csv
 
     def train(self):
         self.model = LinearRegression()
