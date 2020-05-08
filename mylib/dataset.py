@@ -14,9 +14,37 @@ class BitcoinDataset:
         self.add_time_columns()
         self.convert_hlc_to_ratio()
         self.add_trend()
-        self.add_result()
+        # self.add_result()
+        self.add_extreme_column()
         self.add_column_latest_close()
         self.remove_missing_rows()
+
+    def set_dataset_for_test(self, csv):
+        self.data = csv
+        self.rename_result_column()
+        self.add_extreme_column()
+
+    def add_extreme_column(self):
+        for index, row in self.data.iterrows():
+            last_index = index + MINUTES_OF_HOURS
+            if last_index > len(self.data):
+                continue
+
+            data_in_hours = self.data[["high", "low"]][index:last_index]
+            highest = data_in_hours["high"].max()
+            lowest = data_in_hours["low"].min()
+            diff_highest = highest - row["open"]
+            diff_lowest = row["open"] - lowest
+
+            if diff_highest > diff_lowest:
+                extreme60 = highest / row["open"]
+            else:
+                extreme60 = lowest / row["open"]
+
+            self.data.at[index, "extreme60"] = extreme60
+
+    def rename_result_column(self):
+        self.data = self.data.rename(columns={"result": "trend60"})
 
     def add_time_columns(self):
         timestamp = pd.Series([dt.fromtimestamp(i) for i in self.data["unixtime"]])
@@ -34,7 +62,7 @@ class BitcoinDataset:
             if first_index < 0:
                 continue
 
-            data_in_hours = self.data[first_index:index]
+            data_in_hours = self.data[["close"]][first_index:index]
 
             _x = list(range(len(data_in_hours)))
             trend_line = linregress(x=_x, y=data_in_hours["close"])

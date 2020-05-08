@@ -50,5 +50,5 @@ def calc_avg_score(data):
 
 def set_train_test_dataset(data, test_ratio):
     _x = data[TRAIN_COLUMNS]
-    _y = data["result"]
+    _y = data["extreme60"]
     return train_test_split(_x, _y, test_size=test_ratio)
