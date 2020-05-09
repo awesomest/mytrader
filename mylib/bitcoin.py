@@ -1,3 +1,6 @@
+"""
+bitcoin.py
+"""
 from sklearn.linear_model import LinearRegression  # pylint: disable=import-error
 from sklearn.model_selection import train_test_split  # pylint: disable=import-error
 
@@ -28,12 +31,25 @@ TRAIN_COLUMNS = [
 
 
 def create_model(data_train, label_train):
+    """
+    Params:
+        data_train (dataframe): training data
+        label_train (dataframe): label data
+    Returns:
+        model: trained model
+    """
     model = LinearRegression()
     model.fit(data_train, label_train)
     return model
 
 
 def calc_avg_score(data):
+    """
+    Params:
+        data (dataframe): all dataset to be scored
+    Returns:
+        float: average score of model
+    """
     sum_score = 0
     times = 100
     for i in range(times):
@@ -49,6 +65,16 @@ def calc_avg_score(data):
 
 
 def set_train_test_dataset(data, test_ratio):
+    """
+    Params:
+        data (dataframe): data to be split
+        test_ratio (float): test ratio
+    Returns:
+        dataframe: data_train
+        dataframe: data_test
+        dataframe: label_train
+        dataframe: label_test
+    """
     _x = data[TRAIN_COLUMNS]
     _y = data["extreme60"]
     return train_test_split(_x, _y, test_size=test_ratio)

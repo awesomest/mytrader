@@ -1,3 +1,6 @@
+"""
+btc_watch.py
+"""
 import json
 import logging
 import socketio
@@ -22,18 +25,27 @@ logger.info("Created socketio client")
 
 @sio.event
 def connect():
+    """
+    Connect to server
+    """
     logger.info("connected to server")
     sio.emit("join-room", "transactions_btc_jpy")
 
 
 @sio.event
 def message(data):
+    """
+    Message to server
+    """
     logger.info("print message")
     print(json.dumps(data, indent=2))
 
 
 @sio.event
 def disconnect():
+    """
+    Disconnect from server
+    """
     logger.info("disconnected from server")
 
 
