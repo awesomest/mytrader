@@ -1,12 +1,30 @@
+"""
+simulator.py
+"""
 from mylib import bitbank  # pylint: disable=import-error
 from mylib import bitcoin  # pylint: disable=import-error
 
 
 class BitcoinSimulator:
+    """
+    BitcoinSimulator
+    """
+
     def __init__(self, yen):
+        """
+        Params:
+            yen (int): initial yen the user have
+        """
         self.user = BitcoinUser(yen)
 
     def simulate(self, data, model):
+        """
+        Params:
+            data (dataframe): all dataset to simulate
+            model (model): data for model
+        Return:
+            dataframe: transition of assets
+        """
         data_simulation = data.copy()
         data_simulation["predict"] = model.predict(data[bitcoin.TRAIN_COLUMNS])
         assets = []
@@ -24,20 +42,18 @@ class BitcoinSimulator:
 
         return assets
 
-    def decide_action(self, data):
+    def decide_action(self, row):
         """
-        Returns
-        -------
-        int
-            -1 : Means sell
-             0 : Means do nothing
-             1 : Means buy
+        Params:
+            row: current data
+        Returns:
+            int: -1 for sell, 1 for buy, 0 otherwise
         """
 
-        if data["predict"] > 1.005:  # upward trend # TODO: Decide the threshold
+        if row["predict"] > 1.005:  # upward trend # TODO: Decide the threshold
             if self.user.yen > 0:
                 return 1
-        if data["predict"] < 0.995:  # downward # TODO: Decide the threshold
+        if row["predict"] < 0.995:  # downward # TODO: Decide the threshold
             if self.user.btc > 0:
                 return -1
 
@@ -45,7 +61,15 @@ class BitcoinSimulator:
 
 
 class BitcoinUser:
+    """
+    BitcoinUser
+    """
+
     def __init__(self, yen):
+        """
+        Params:
+            yen (int): initial yen the user have
+        """
         self.yen = yen  # 現在の円価格
         self.btc = 0  # 現在のBitCoin価格
         self.total = yen  # 現在の総資産額
@@ -60,14 +84,29 @@ class BitcoinUser:
         """
 
     def buy_btc(self, price, amount):
+        """
+        Params:
+            price (int): current price of BTC
+            amount (float): amount of BTC to buy
+        """
         self.yen -= price * amount
         self.btc += amount * (1 - bitbank.TRADING_FEE)
         self.update_total_assets(price)
 
     def sell_btc(self, price, amount):
+        """
+        Params:
+            price (int): current price of BTC
+            amount (float): amount of BTC to sell
+        """
         self.btc -= amount
         self.yen += price * amount * (1 - bitbank.TRADING_FEE)
         self.update_total_assets(price)
 
     def update_total_assets(self, price):
+        """
+        Update user's total assets
+        Params:
+            price (int): current price of BTC
+        """
         self.total = self.yen + self.btc * price
