@@ -2,16 +2,15 @@
 btc_watch.py
 """
 import json
-import logging
+from logging import getLogger, basicConfig, DEBUG
 import socketio
 
-logging.basicConfig(
-    level=logging.ERROR,
-    filename="./try.log",
-    format="%(levelname)s : %(asctime)s : %(message)s",
+FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
+basicConfig(
+    filename="./try.log", format=FORMATTER,
 )
-logger = logging.getLogger(__name__)
-logger.setLevel(level=logging.DEBUG)
+logger = getLogger(__name__)
+logger.setLevel(DEBUG)
 
 sio = socketio.Client(
     reconnection=True,

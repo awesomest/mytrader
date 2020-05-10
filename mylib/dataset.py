@@ -1,9 +1,16 @@
 """
 dataset.py
 """
+import inspect
+from logging import getLogger, basicConfig, DEBUG
 from datetime import datetime as dt
 import pandas as pd  # pylint: disable=import-error
 from scipy.stats import linregress  # pylint: disable=import-error
+
+FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
+basicConfig(format=FORMATTER)
+logger = getLogger(__name__)
+logger.setLevel(DEBUG)
 
 MINUTES_OF_HOURS = 60 * 1  # TODO: 最適な時間を要調査
 
@@ -22,20 +29,23 @@ class BitcoinDataset:
         Params:
             csv (dataframe): originalデータ
         """
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.data = csv.sort_values(["unixtime"])
+        self.add_column_trend()
+        self.add_column_extreme_60_later()
+        # self.add_column_trend_60_later()  # TODO: 不要になったら削除
+        self.add_columns_close_ratio()
         self.add_columns_time()
         self.convert_hlc_to_ratio()
-        self.add_column_trend()
-        # self.add_column_trend_60_later()  # TODO: 不要になったら削除
-        self.add_column_extreme_60_later()
-        self.add_columns_close_ratio()
         self.remove_missing_rows()
+        logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
 
     def set_dataset_for_test(self, csv):
         """
         TODO: テスト用なので、不要になったら削除
         テスト用データセット作成
         """
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.data = csv
         self.rename_result_column()
         self.add_column_extreme_60_later()
@@ -44,7 +54,12 @@ class BitcoinDataset:
         """
         現在から60分後までの最大値or最小値を追加
         """
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         for index, row in self.data.iterrows():
+            if index % 10000 == 0:
+                logger.info(
+                    "  index: {:4f}{}".format(index / len(self.data * 100), "%")
+                )
             last_index = index + MINUTES_OF_HOURS
             if last_index > len(self.data):
                 continue
@@ -67,12 +82,14 @@ class BitcoinDataset:
         TODO: 一時的なものなので、不要になったら削除
         カラム名を変更
         """
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.data = self.data.rename(columns={"result": "trend60"})
 
     def add_columns_time(self):
         """
         現在日時に関する列を追加
         """
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         timestamp = pd.Series([dt.fromtimestamp(i) for i in self.data["unixtime"]])
         self.data["day"] = timestamp.dt.day
         self.data["weekday"] = timestamp.dt.dayofweek
@@ -83,13 +100,19 @@ class BitcoinDataset:
         """
         欠損値を除外する
         """
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.data.dropna(inplace=True)
 
     def add_column_trend(self):
         """
         60分前から現在までのトレンドを追加
         """
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         for index, _ in self.data.iterrows():
+            if index % 10000 == 0:
+                logger.info(
+                    "  index: {:4f}{}".format(index / len(self.data * 100), "%")
+                )
             first_index = index - MINUTES_OF_HOURS
             if first_index < 0:
                 continue
@@ -104,23 +127,25 @@ class BitcoinDataset:
         """
         現在から60分後までのトレンドを追加
         """
-        self.data["result"] = self.data["trend"].shift(-1 * MINUTES_OF_HOURS)
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+        self.data["trend60"] = self.data["trend"].shift(-1 * MINUTES_OF_HOURS)
 
     def add_columns_close_ratio(self):
         """
         指定した時間前のclose_ratioを現在のopenに対する割合として追加
         """
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         minute_list = [1, 2, 5, 10, 15, 30, 60, 120, 240, 480, 720, 1440, 2880, 10080]
         for i in minute_list:
-            name = "close_ratio" + str(i)
-            self.data[name] = self.data["close_ratio"].shift(
-                i
-            )  # FIXME: 現在のopenに対する割合になっていない
+            name = "close_ratio-" + str(i)
+            self.data[name] = self.data["close"].shift(i)
+            self.data[name] = self.data[name] / self.data["open"]
 
     def convert_hlc_to_ratio(self):
         """
         価格データをopenに対する割合として追加
         """
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         columns = ["high", "low", "close"]
         for column in columns:
             self.data[column + "_ratio"] = self.data[column] / self.data["open"]

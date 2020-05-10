@@ -1,8 +1,15 @@
 """
 simulator.py
 """
+import inspect
+from logging import getLogger, basicConfig, DEBUG
 from mylib import bitbank  # pylint: disable=import-error
 from mylib import bitcoin  # pylint: disable=import-error
+
+FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
+basicConfig(format=FORMATTER)
+logger = getLogger(__name__)
+logger.setLevel(DEBUG)
 
 
 class BitcoinSimulator:
@@ -25,6 +32,7 @@ class BitcoinSimulator:
         Return:
             dataframe: transition of assets
         """
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         data_simulation = data.copy()
         data_simulation["predict"] = model.predict(data[bitcoin.TRAIN_COLUMNS])
         assets = []
@@ -49,7 +57,7 @@ class BitcoinSimulator:
         Returns:
             int: -1 for sell, 1 for buy, 0 otherwise
         """
-
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         if row["predict"] > 1.005:  # upward trend # TODO: Decide the threshold
             if self.user.yen > 0:
                 return 1
@@ -89,6 +97,7 @@ class BitcoinUser:
             price (int): current price of BTC
             amount (float): amount of BTC to buy
         """
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.yen -= price * amount
         self.btc += amount * (1 - bitbank.TRADING_FEE)
         self.update_total_assets(price)
@@ -99,6 +108,7 @@ class BitcoinUser:
             price (int): current price of BTC
             amount (float): amount of BTC to sell
         """
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.btc -= amount
         self.yen += price * amount * (1 - bitbank.TRADING_FEE)
         self.update_total_assets(price)
@@ -109,4 +119,5 @@ class BitcoinUser:
         Params:
             price (int): current price of BTC
         """
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.total = self.yen + self.btc * price
