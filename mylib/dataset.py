@@ -104,7 +104,7 @@ class BitcoinDataset:
         """
         現在から60分後までのトレンドを追加
         """
-        self.data["result"] = self.data["trend"].shift(-1 * MINUTES_OF_HOURS)
+        self.data["trend60"] = self.data["trend"].shift(-1 * MINUTES_OF_HOURS)
 
     def add_columns_close_ratio(self):
         """
@@ -112,10 +112,9 @@ class BitcoinDataset:
         """
         minute_list = [1, 2, 5, 10, 15, 30, 60, 120, 240, 480, 720, 1440, 2880, 10080]
         for i in minute_list:
-            name = "close_ratio" + str(i)
-            self.data[name] = self.data["close_ratio"].shift(
-                i
-            )  # FIXME: 現在のopenに対する割合になっていない
+            name = "close_ratio-" + str(i)
+            self.data[name] = self.data["close"].shift(i)
+            self.data[name] = self.data[name] / self.data["open"]
 
     def convert_hlc_to_ratio(self):
         """
