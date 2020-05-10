@@ -57,9 +57,7 @@ class BitcoinDataset:
         logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         for index, row in self.data.iterrows():
             if index % 10000 == 0:
-                logger.info(
-                    "  index: {:4f}{}".format(index / len(self.data * 100), "%")
-                )
+                logger.info("  index: {:.2%}".format(index / len(self.data)))
             last_index = index + MINUTES_OF_HOURS
             if last_index > len(self.data):
                 continue
@@ -110,9 +108,7 @@ class BitcoinDataset:
         logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         for index, _ in self.data.iterrows():
             if index % 10000 == 0:
-                logger.info(
-                    "  index: {:4f}{}".format(index / len(self.data * 100), "%")
-                )
+                logger.info("  index: {:.2%}".format(index / len(self.data)))
             first_index = index - MINUTES_OF_HOURS
             if first_index < 0:
                 continue

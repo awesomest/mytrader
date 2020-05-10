@@ -37,7 +37,9 @@ class BitcoinSimulator:
         data_simulation["predict"] = model.predict(data[bitcoin.TRAIN_COLUMNS])
         assets = []
 
-        for _, row in data_simulation.iterrows():
+        for index, row in data_simulation.iterrows():
+            if index % 10000 == 0:
+                logger.info("  index: {:.2%}".format(index / len(data_simulation)))
             action = self.decide_action(row)
             if action == 1:
                 amount = self.user.yen / row["close"]
@@ -57,7 +59,6 @@ class BitcoinSimulator:
         Returns:
             int: -1 for sell, 1 for buy, 0 otherwise
         """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         if row["predict"] > 1.005:  # upward trend # TODO: Decide the threshold
             if self.user.yen > 0:
                 return 1
@@ -119,5 +120,4 @@ class BitcoinUser:
         Params:
             price (int): current price of BTC
         """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.total = self.yen + self.btc * price
