@@ -84,7 +84,7 @@ def save_all_candlestick():
     end_date = datetime.date.today() + datetime.timedelta(-1)
     date_range = get_date_range(start_date, end_date)
     for date in date_range:
-        print(date)
+        print(date)  # TODO: Use logger
         date_str = date.strftime("%Y%m%d")
         cv_list = fetch_candlestick_daily(date_str)
         insert_candlestick(cv_list)

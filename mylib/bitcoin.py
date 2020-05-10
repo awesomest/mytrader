@@ -1,8 +1,15 @@
 """
 bitcoin.py
 """
+import inspect
+from logging import getLogger, basicConfig, DEBUG
 from sklearn.linear_model import LinearRegression  # pylint: disable=import-error
 from sklearn.model_selection import train_test_split  # pylint: disable=import-error
+
+FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
+basicConfig(format=FORMATTER)
+logger = getLogger(__name__)
+logger.setLevel(DEBUG)
 
 TRAIN_COLUMNS = [
     "day",
@@ -38,6 +45,7 @@ def create_model(data_train, label_train):
     Returns:
         model: trained model
     """
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
     model = LinearRegression()
     model.fit(data_train, label_train)
     return model
@@ -50,6 +58,7 @@ def calc_avg_score(data):
     Returns:
         float: average score of model
     """
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
     sum_score = 0
     times = 100
     for i in range(times):
@@ -58,8 +67,10 @@ def calc_avg_score(data):
         )
         model = create_model(data_train, label_train)
         score = model.score(data_test, label_test)
-        print(f"score[{i:03}]: {score}")
+        logger.info("score[{:3d}]: {:f}".format(i, score))
         sum_score += score
+
+    logger.info("score[avg]: {:f}".format(score))
 
     return sum_score / times
 
@@ -75,6 +86,8 @@ def set_train_test_dataset(data, test_ratio):
         dataframe: label_train
         dataframe: label_test
     """
+
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
     _x = data[TRAIN_COLUMNS]
     _y = data["extreme60"]
     return train_test_split(_x, _y, test_size=test_ratio)
