@@ -45,7 +45,6 @@ def create_model(data_train, label_train):
     Returns:
         model: trained model
     """
-    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
     model = LinearRegression()
     model.fit(data_train, label_train)
     return model
@@ -67,10 +66,10 @@ def calc_avg_score(data):
         )
         model = create_model(data_train, label_train)
         score = model.score(data_test, label_test)
-        logger.info("score[{:3d}]: {:f}".format(i, score))
+        logger.info("score[{:3d}]: {:.5f}".format(i, score))
         sum_score += score
 
-    logger.info("score[avg]: {:f}".format(score))
+    logger.info("score[avg]: {:.5f}".format(score))
 
     return sum_score / times
 
@@ -87,7 +86,6 @@ def set_train_test_dataset(data, test_ratio):
         dataframe: label_test
     """
 
-    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
     _x = data[TRAIN_COLUMNS]
     _y = data["extreme60"]
     return train_test_split(_x, _y, test_size=test_ratio)
