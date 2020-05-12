@@ -31,7 +31,7 @@ class BitcoinDataset:
             csv (dataframe): originalデータ
         """
         logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        self.data = csv.sort_values(["unixtime"])
+        self.data = csv
         self.add_column_trend()
         self.add_column_extreme_60_later()
         # self.add_column_trend_60_later()  # TODO: 不要になったら削除
@@ -57,13 +57,14 @@ class BitcoinDataset:
             if last_index > len(self.data):
                 continue
 
+            # TODO: closeの最大・最小でも要確認
             data_in_hours = self.data[["high", "low"]][index:last_index]
-            highest = data_in_hours["high"].max()
-            lowest = data_in_hours["low"].min()
-            diff_highest = highest - row["open"]
-            diff_lowest = row["open"] - lowest
+            highest_index = data_in_hours["high"].idxmax()
+            highest = data_in_hours["high"][highest_index]
+            lowest_index = data_in_hours["low"].idxmin()
+            lowest = data_in_hours["low"][lowest_index]
 
-            if diff_highest > diff_lowest:
+            if highest_index < lowest_index:
                 extreme60 = highest / row["open"]
             else:
                 extreme60 = lowest / row["open"]

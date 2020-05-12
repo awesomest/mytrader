@@ -98,7 +98,6 @@ class BitcoinUser:
             price (int): current price of BTC
             amount (float): amount of BTC to buy
         """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.yen -= price * amount
         self.btc += amount * (1 - bitbank.TRADING_FEE)
         self.update_total_assets(price)
@@ -109,7 +108,6 @@ class BitcoinUser:
             price (int): current price of BTC
             amount (float): amount of BTC to sell
         """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.btc -= amount
         self.yen += price * amount * (1 - bitbank.TRADING_FEE)
         self.update_total_assets(price)
