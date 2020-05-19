@@ -5,7 +5,9 @@ import inspect
 from logging import getLogger, basicConfig, DEBUG
 from datetime import datetime as dt
 import pandas as pd  # pylint: disable=import-error
+import numpy as np  # pylint: disable=import-error
 from scipy.stats import linregress  # pylint: disable=import-error
+from scipy import signal  # pylint: disable=import-error
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
 basicConfig(format=FORMATTER)
@@ -35,6 +37,7 @@ class BitcoinDataset:
         self.add_column_trend()
         self.add_column_extreme_60_later()
         # self.add_column_trend_60_later()  # TODO: 不要になったら削除
+        self.add_column_next_extreme()
         self.add_columns_close_ratio()
         self.add_columns_time()
         self.convert_hlc_to_ratio()
@@ -45,6 +48,7 @@ class BitcoinDataset:
     def add_column_extreme_60_later(self):
         """
         現在から60分後までの最大値or最小値を追加
+        TODO: dataframe.rolling を使用する
         """
         logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         if "extreme60" in self.data.columns:
@@ -157,3 +161,30 @@ class BitcoinDataset:
 
             self.data[name] = self.data[column] / self.data["open"]
             self.data.to_csv("datasets/" + str(self.version) + ".csv", index=False)
+
+    def add_column_next_extreme(self):
+        """
+        期間n分の極大値・極小値
+        """
+        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+        column_name = "next_extreme"
+        if column_name in self.data.columns:
+            return
+
+        _y = self.data["close"].values
+        max_ids = signal.argrelmax(_y, order=1)
+        min_ids = signal.argrelmin(_y, order=1)
+        max_min_ids = np.concatenate([max_ids[0], min_ids[0]])
+        max_min_ids = np.sort(max_min_ids)
+        next_idx = 0
+        for index, row in self.data.iterrows():
+            if index % 10000 == 0:
+                logger.info("  index: {:.2%}".format(index / len(self.data)))
+
+            if next_idx >= len(max_min_ids):
+                break
+
+            _ni = max_min_ids[next_idx]
+            if index >= _ni:
+                next_idx += 1
+            self.data.at[index, column_name] = self.data.at[_ni, "close"] / row["open"]

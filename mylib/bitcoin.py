@@ -87,5 +87,5 @@ def set_train_test_dataset(data, test_ratio):
     """
 
     _x = data[TRAIN_COLUMNS]
-    _y = data["extreme60"]
+    _y = data["next_extreme"]
     return train_test_split(_x, _y, test_size=test_ratio)
