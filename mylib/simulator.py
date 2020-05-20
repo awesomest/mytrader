@@ -17,6 +17,9 @@ class BitcoinSimulator:
     BitcoinSimulator
     """
 
+    UPWARD_THRESHOLD = 0.00125  # TODO: Decide the best. this is 20th percentile now.
+    DOWNWARD_THRESHOLD = -0.00119  # TODO: Decide the best. this is 80th percentile now.
+
     def __init__(self, yen):
         """
         Params:
@@ -59,10 +62,10 @@ class BitcoinSimulator:
         Returns:
             int: -1 for sell, 1 for buy, 0 otherwise
         """
-        if row["predict"] > 1.005:  # upward trend # TODO: Decide the threshold
+        if row["predict"] > self.UPWARD_THRESHOLD:
             if self.user.yen > 0:
                 return 1
-        if row["predict"] < 0.995:  # downward # TODO: Decide the threshold
+        if row["predict"] < self.DOWNWARD_THRESHOLD:
             if self.user.btc > 0:
                 return -1
 

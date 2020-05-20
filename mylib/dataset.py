@@ -34,13 +34,13 @@ class BitcoinDataset:
         """
         logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.data = csv
-        self.add_column_trend()
-        self.add_column_extreme_60_later()
+        self.convert_hlc_to_log()
+        # self.add_column_trend()  # TODO: 不要になったら削除
+        # self.add_column_extreme_60_later()  # TODO: 不要になったら削除
         # self.add_column_trend_60_later()  # TODO: 不要になったら削除
         self.add_column_next_extreme()
-        self.add_columns_close_ratio()
+        self.add_columns_close_log()
         self.add_columns_time()
-        self.convert_hlc_to_ratio()
         self.remove_missing_rows()
         self.data.to_csv("datasets/" + str(self.version) + ".csv", index=False)
         logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
@@ -133,33 +133,32 @@ class BitcoinDataset:
         self.data["trend60"] = self.data["trend"].shift(-1 * MINUTES_OF_HOURS)
         self.data.to_csv("datasets/" + str(self.version) + ".csv", index=False)
 
-    def add_columns_close_ratio(self):
+    def add_columns_close_log(self):
         """
-        指定した時間前のclose_ratioを現在のopenに対する割合として追加
+        指定した時間前のclose_logの差を追加
         """
         logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         minute_list = [1, 2, 5, 10, 15, 30, 60, 120, 240, 480, 720, 1440, 2880, 10080]
         for i in minute_list:
-            name = "close_ratio-" + str(i)
+            name = "close_log-" + str(i)
             if name in self.data.columns:
                 continue
 
-            self.data[name] = self.data["close"].shift(i)
-            self.data[name] = self.data[name] / self.data["open"]
+            self.data[name] = self.data["close_log"].diff(periods=i)
             self.data.to_csv("datasets/" + str(self.version) + ".csv", index=False)
 
-    def convert_hlc_to_ratio(self):
+    def convert_hlc_to_log(self):
         """
         価格データをopenに対する割合として追加
         """
         logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        columns = ["high", "low", "close"]
+        columns = ["open", "high", "low", "close"]
         for column in columns:
-            name = column + "_ratio"
+            name = column + "_log"
             if name in self.data.columns:
                 continue
 
-            self.data[name] = self.data[column] / self.data["open"]
+            self.data[name] = np.log(self.data[column])
             self.data.to_csv("datasets/" + str(self.version) + ".csv", index=False)
 
     def add_column_next_extreme(self):
@@ -167,11 +166,11 @@ class BitcoinDataset:
         期間n分の極大値・極小値
         """
         logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        column_name = "next_extreme"
+        column_name = "next_extreme_log"
         if column_name in self.data.columns:
             return
 
-        _y = self.data["close"].values
+        _y = self.data["close_log"].values
         max_ids = signal.argrelmax(_y, order=1)
         min_ids = signal.argrelmin(_y, order=1)
         max_min_ids = np.concatenate([max_ids[0], min_ids[0]])
@@ -187,4 +186,6 @@ class BitcoinDataset:
             _ni = max_min_ids[next_idx]
             if index >= _ni:
                 next_idx += 1
-            self.data.at[index, column_name] = self.data.at[_ni, "close"] / row["open"]
+            self.data.at[index, column_name] = (
+                self.data.at[_ni, "close_log"] - row["open_log"]
+            )
