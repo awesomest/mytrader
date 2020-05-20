@@ -16,24 +16,24 @@ TRAIN_COLUMNS = [
     "weekday",
     "second",
     "volume",
-    "high_ratio",
-    "low_ratio",
-    "close_ratio",
-    "trend",
-    "close_ratio-1",
-    "close_ratio-2",
-    "close_ratio-5",
-    "close_ratio-10",
-    "close_ratio-15",
-    "close_ratio-30",
-    "close_ratio-60",
-    "close_ratio-120",
-    "close_ratio-240",
-    "close_ratio-480",
-    "close_ratio-720",
-    "close_ratio-1440",
-    "close_ratio-2880",
-    "close_ratio-10080",
+    "open_log",
+    "high_log",
+    "low_log",
+    "close_log",
+    "close_log-1",
+    "close_log-2",
+    "close_log-5",
+    "close_log-10",
+    "close_log-15",
+    "close_log-30",
+    "close_log-60",
+    "close_log-120",
+    "close_log-240",
+    "close_log-480",
+    "close_log-720",
+    "close_log-1440",
+    "close_log-2880",
+    "close_log-10080",
 ]
 
 
@@ -87,5 +87,5 @@ def set_train_test_dataset(data, test_ratio):
     """
 
     _x = data[TRAIN_COLUMNS]
-    _y = data["next_extreme"]
+    _y = data["next_extreme_log"]
     return train_test_split(_x, _y, test_size=test_ratio)
