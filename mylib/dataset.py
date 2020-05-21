@@ -89,7 +89,7 @@ class BitcoinDataset:
         self.data["day"] = timestamp.dt.day
         self.data["weekday"] = timestamp.dt.dayofweek
         self.data["second"] = (timestamp.dt.hour * 60 + timestamp.dt.minute) * 60
-        self.data.drop(columns=["unixtime"], inplace=True)
+        # self.data.drop(columns=["unixtime"], inplace=True)
         self.data.to_csv("datasets/" + str(self.version) + ".csv", index=False)
 
     def remove_missing_rows(self):
