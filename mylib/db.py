@@ -17,6 +17,7 @@ class DbHandler:
     DbHandler
     """
 
+    # TODO: Set with env variables
     DB_HOST = "localhost"
     DB_PORT = "4306"
     DB_USER = "eraise"
