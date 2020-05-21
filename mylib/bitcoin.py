@@ -8,6 +8,7 @@ import pandas as pd  # pylint: disable=import-error
 import numpy as np  # pylint: disable=import-error
 from sklearn.linear_model import LinearRegression  # pylint: disable=import-error
 from sklearn.model_selection import train_test_split  # pylint: disable=import-error
+from mylib import db  # pylint: disable=import-error
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
 basicConfig(format=FORMATTER)
@@ -43,7 +44,7 @@ TRAIN_COLUMNS = [
 def build_input_for_model(candlestick):
     """
     Params:
-        candlestick: (np.array): time of target row
+        candlestick: (np.array): time of the target row
             includes: ["unixtime", "open", "high", "low", "close", "volume"]
     Return:
         row: (dataframe): input for model
@@ -62,21 +63,38 @@ def build_input_for_model(candlestick):
     data["close_log"] = np.log(candlestick[4])
     data["volume"] = candlestick[5]
 
-    # TODO: fetch close value since 10080 min ago from DB
-    # "close_log-1",
-    # "close_log-2",
-    # "close_log-5",
-    # "close_log-10",
-    # "close_log-15",
-    # "close_log-30",
-    # "close_log-60",
-    # "close_log-120",
-    # "close_log-240",
-    # "close_log-480",
-    # "close_log-720",
-    # "close_log-1440",
-    # "close_log-2880",
-    # "close_log-10080",
+    _dh = db.DbHandler()  # TODO: create in other place
+
+    minutes_diffs = [
+        1,
+        2,
+        5,
+        10,
+        15,
+        30,
+        60,
+        120,
+        240,
+        480,
+        720,
+        1440,
+        2880,
+        10080,
+    ]
+
+    query_format = """
+        SELECT close
+        FROM candlestick
+        WHERE unixtime <= {:d}
+        ORDER BY unixtime DESC
+        LIMIT 1
+        """
+
+    for i in minutes_diffs:
+        seconds_diff = i * 60
+        query = query_format.format(int(candlestick[0] - seconds_diff))
+        rows = _dh.select(query)
+        data["close_log-" + str(i)] = data["close_log"] - np.log(rows[0][0])
 
     return data
 
