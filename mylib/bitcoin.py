@@ -3,6 +3,9 @@ bitcoin.py
 """
 import inspect
 from logging import getLogger, basicConfig, DEBUG
+from datetime import datetime as dt
+import pandas as pd  # pylint: disable=import-error
+import numpy as np  # pylint: disable=import-error
 from sklearn.linear_model import LinearRegression  # pylint: disable=import-error
 from sklearn.model_selection import train_test_split  # pylint: disable=import-error
 
@@ -35,6 +38,58 @@ TRAIN_COLUMNS = [
     "close_log-2880",
     "close_log-10080",
 ]
+
+
+def build_input_for_model(candlestick):
+    """
+    Params:
+        candlestick: (np.array): time of target row
+            includes: ["unixtime", "open", "high", "low", "close", "volume"]
+    Return:
+        row: (dataframe): input for model
+    """
+
+    data = pd.DataFrame([[]])
+
+    timestamp = dt.fromtimestamp(candlestick[0])
+    data["day"] = timestamp.day
+    data["weekday"] = timestamp.weekday()
+    data["second"] = (timestamp.hour * 60 + timestamp.minute) * 60
+
+    data["open_log"] = np.log(candlestick[1])
+    data["high_log"] = np.log(candlestick[2])
+    data["low_log"] = np.log(candlestick[3])
+    data["close_log"] = np.log(candlestick[4])
+    data["volume"] = candlestick[5]
+
+    # TODO: fetch close value since 10080 min ago from DB
+    # "close_log-1",
+    # "close_log-2",
+    # "close_log-5",
+    # "close_log-10",
+    # "close_log-15",
+    # "close_log-30",
+    # "close_log-60",
+    # "close_log-120",
+    # "close_log-240",
+    # "close_log-480",
+    # "close_log-720",
+    # "close_log-1440",
+    # "close_log-2880",
+    # "close_log-10080",
+
+    return data
+
+
+def predict(data, model):
+    """
+    Params:
+        data: (dataframe): input data as 1 row
+        model (model): model for predict
+    Return:
+        predicted_value: (float): next extreme value as log
+    """
+    return model.predict(data[TRAIN_COLUMNS])
 
 
 def create_model(data_train, label_train):
