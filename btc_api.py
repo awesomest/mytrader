@@ -2,7 +2,7 @@
 btc_api.py
 """
 
-from mylib import candlestick  # pylint: disable=import-error
+from mylib import candlestick
 
 
 def main():
