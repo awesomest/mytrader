@@ -4,10 +4,10 @@ bitcoin.py
 import inspect
 from logging import getLogger, basicConfig, DEBUG
 from datetime import datetime as dt
-import pandas as pd  # pylint: disable=import-error
-import numpy as np  # pylint: disable=import-error
-from sklearn.linear_model import LinearRegression  # pylint: disable=import-error
-from sklearn.model_selection import train_test_split  # pylint: disable=import-error
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
 from mylib import db  # pylint: disable=import-error
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"

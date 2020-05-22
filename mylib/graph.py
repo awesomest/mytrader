@@ -35,7 +35,7 @@ def plot_label(data, _ax):
     data.reset_index(drop=True, inplace=True)
     y_label = np.exp(data["close_log"] + data["next_extreme_log"])
 
-    _ax.plot(list(range(len(data))), y_label, color="green", label="label")
+    _ax.plot(list(range(len(data))), y_label, color="orange", label="label")
     _ax.legend()
 
 
