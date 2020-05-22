@@ -149,7 +149,7 @@ class BitcoinDataset:
 
     def convert_hlc_to_log(self):
         """
-        価格データをopenに対する割合として追加
+        価格データを対数変換して追加
         """
         logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         columns = ["open", "high", "low", "close"]
@@ -186,6 +186,7 @@ class BitcoinDataset:
             _ni = max_min_ids[next_idx]
             if index >= _ni:
                 next_idx += 1
+            # TODO: Change open_log to close_log
             self.data.at[index, column_name] = (
                 self.data.at[_ni, "close_log"] - row["open_log"]
             )
