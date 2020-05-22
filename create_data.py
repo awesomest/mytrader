@@ -38,7 +38,7 @@ def main():
 
     _x = _b.data
 
-    plot(csv, file_name + "_data")
+    plot(_x, file_name + "_data")
 
 
 if __name__ == "__main__":
