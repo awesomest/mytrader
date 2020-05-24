@@ -10,6 +10,7 @@ python-socketio = "*"
 django = "==3.0"
 black = "*"
 pylint = "*"
+mysqlclient = "*"
 
 [requires]
 python_version = "3.8"
