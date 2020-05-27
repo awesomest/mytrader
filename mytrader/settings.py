@@ -78,7 +78,10 @@ WSGI_APPLICATION = "mytrader.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "OPTIONS": {"read_default_file": "./database.cnf",},
+        "OPTIONS": {
+            "read_default_file": "./database.cnf",
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
