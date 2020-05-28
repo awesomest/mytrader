@@ -56,3 +56,15 @@ def fetch_candlestick_from_bitbank(date_str: str):
     value = pub.get_candlestick("btc_jpy", "1min", date_str)
     candlestick = value["candlestick"][0]["ohlcv"]
     return candlestick
+
+
+def get_date_range(start_date: dt.datetime, stop_date: dt.datetime):
+    """
+    Params:
+        start_date (datetime): date of start.
+        stop_date (datetime): date of end. it's not included.
+    Returns:
+        list: list of string of date
+    """
+    diff = (stop_date - start_date).days
+    return (start_date + dt.timedelta(i) for i in range(diff))

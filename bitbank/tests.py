@@ -48,3 +48,10 @@ class CandlestickModelTests(TestCase):
         """test_fetch_candlestick_from_bitbank"""
         data = views.fetch_candlestick_from_bitbank("20170610")
         self.assertEqual(len(data), 1440)
+
+    def test_get_date_range(self):
+        """test_get_date_range"""
+        start_date = dt.date(2017, 2, 14)
+        stop_date = dt.date(2017, 4, 14)
+        data = views.get_date_range(start_date, stop_date)
+        self.assertEqual(len(list(data)), 59)
