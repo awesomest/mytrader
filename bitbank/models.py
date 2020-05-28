@@ -10,6 +10,8 @@ class Candlestick(models.Model):
     high = models.FloatField()
     low = models.FloatField()
     close = models.FloatField()
+    volume = models.FloatField()
 
     def __str__(self):
-        return self.unixtime
+        # pylint: disable=invalid-str-returned
+        return str(self.unixtime)
