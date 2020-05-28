@@ -4,6 +4,7 @@ from logging import getLogger, basicConfig, DEBUG
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+import python_bitbankcc  # pylint: disable=import-error
 from bitbank.models import Candlestick
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
@@ -19,7 +20,7 @@ def index(request):
     return render(request, "bitbank/index.html")
 
 
-def fetch(_):
+def fetch():
     """fetch"""
     return HttpResponseRedirect(reverse("bitbank:results", args=("success",)))
 
@@ -42,3 +43,16 @@ def select_latest_date():
             latest_datetime.year, latest_datetime.month, latest_datetime.day
         )
         return latest_date
+
+
+def fetch_candlestick_from_bitbank(date_str: str):
+    """
+    Params:
+        date_str (str): string of date
+    Returns:
+        list: all of list of candlestick
+    """
+    pub = python_bitbankcc.public()
+    value = pub.get_candlestick("btc_jpy", "1min", date_str)
+    candlestick = value["candlestick"][0]["ohlcv"]
+    return candlestick

@@ -43,3 +43,8 @@ class CandlestickModelTests(TestCase):
         create_latest_candlestick()
         latest_date = views.select_latest_date()
         self.assertEqual(latest_date, dt.date(2017, 6, 10))
+
+    def test_fetch_candlestick_from_bitbank(self):
+        """test_fetch_candlestick_from_bitbank"""
+        data = views.fetch_candlestick_from_bitbank("20170610")
+        self.assertEqual(len(data), 1440)
