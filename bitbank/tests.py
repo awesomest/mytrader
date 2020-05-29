@@ -6,6 +6,7 @@ import pandas as pd  # pylint: disable=import-error
 from sklearn.linear_model import LinearRegression  # pylint: disable=import-error
 from .views import dataset
 from .views import bitcoin
+from .views import simulator
 from .models import Candlestick
 
 
@@ -132,3 +133,25 @@ class CandlestickModelTests(TestCase):
         bitcoin.plot(csv, model, file_name)
 
         self.assertTrue(isinstance(model, LinearRegression))
+
+    def test_simulator(self):
+        """test_simulator"""
+        file_name = "test"
+        csv = pd.read_csv("bitbank/static/bitbank/datasets/latest.csv")
+
+        pickle_file = "bitbank/static/bitbank/models/" + file_name + ".pickle"
+        with open(pickle_file, mode="rb") as file:
+            model = pickle.load(file)
+
+        # 最後20%のデータでテスト
+        test_ratio = 0.2
+        test_start = int(len(csv) * (1 - test_ratio))
+        data = csv[test_start:]
+
+        _s = simulator.BitcoinSimulator(200000)
+
+        y_assets = _s.simulate(data, model)
+        print(y_assets[-1])
+
+        simulator.plot(data, model, y_assets, file_name + "_simulate")
+        self.assertGreater(len(y_assets), 0)
