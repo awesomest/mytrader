@@ -12,8 +12,6 @@ basicConfig(format=FORMATTER)
 logger = getLogger(__name__)
 logger.setLevel(DEBUG)
 
-# from .modules import candlestick
-
 
 def index(request):
     """index"""
