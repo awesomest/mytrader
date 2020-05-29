@@ -8,7 +8,7 @@ verify_ssl = true
 [packages]
 python-socketio = "*"
 django = ">=3.0.3"
-black = "*"
+black = "==19.10b0"
 pylint = "*"
 mysqlclient = "*"
 
