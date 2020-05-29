@@ -45,6 +45,7 @@ class BitcoinSimulator:
 
         for index, row in data_simulation.iterrows():
             if index % 10000 == 0:
+                # TODO: fix ratio. good to reset index?
                 logger.info("  index: {:.2%}".format(index / len(data_simulation)))
             action = self.decide_action(row)
             if action == 1:

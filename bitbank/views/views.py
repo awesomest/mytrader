@@ -8,6 +8,7 @@ from django.urls import reverse
 import pandas as pd  # pylint: disable=import-error
 from . import dataset as ds
 from . import bitcoin
+from . import simulator
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
 basicConfig(format=FORMATTER)
@@ -60,6 +61,28 @@ def train(request, version):
         pickle.dump(model, file)
 
     bitcoin.plot(csv, model, version)
+    return redirect("/static/bitbank/graphs/" + version + "_predict.png")
+
+
+def simulate(request, version):
+    """simulate"""
+    csv = pd.read_csv("bitbank/static/bitbank/datasets/latest.csv")
+
+    pickle_file = "bitbank/static/bitbank/models/" + version + ".pickle"
+    with open(pickle_file, mode="rb") as file:
+        model = pickle.load(file)
+
+    # 最後20%のデータでテスト
+    test_ratio = 0.2
+    test_start = int(len(csv) * (1 - test_ratio))
+    data = csv[test_start:]
+
+    _s = simulator.BitcoinSimulator(200000)
+
+    y_assets = _s.simulate(data, model)
+    print(y_assets[-1])
+
+    simulator.plot(data, model, y_assets, version + "_simulate")
     return redirect("/static/bitbank/graphs/" + version + "_predict.png")
 
 
