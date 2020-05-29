@@ -3,7 +3,7 @@ simulator.py
 """
 import inspect
 from logging import getLogger, basicConfig, DEBUG
-from mylib import bitbank  # pylint: disable=import-error
+from mylib import bitbank_app  # pylint: disable=import-error
 from mylib import bitcoin  # pylint: disable=import-error
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
@@ -102,7 +102,7 @@ class BitcoinUser:
             amount (float): amount of BTC to buy
         """
         self.yen -= price * amount
-        self.btc += amount * (1 - bitbank.TRADING_FEE)
+        self.btc += amount * (1 - bitbank_app.TRADING_FEE)
         self.update_total_assets(price)
 
     def sell_btc(self, price, amount):
@@ -112,7 +112,7 @@ class BitcoinUser:
             amount (float): amount of BTC to sell
         """
         self.btc -= amount
-        self.yen += price * amount * (1 - bitbank.TRADING_FEE)
+        self.yen += price * amount * (1 - bitbank_app.TRADING_FEE)
         self.update_total_assets(price)
 
     def update_total_assets(self, price):
