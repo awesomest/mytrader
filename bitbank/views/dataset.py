@@ -253,4 +253,6 @@ class BitcoinDataset:
         graph.plot_close(data2, ax2)
         graph.plot_label(data2, ax2)
 
-        plt.savefig("bitbank/static/bitbank/graphs/" + str(self.version) + ".png")
+        plt.savefig(
+            "bitbank/static/bitbank/graphs/" + str(self.version) + "_dataset.png"
+        )

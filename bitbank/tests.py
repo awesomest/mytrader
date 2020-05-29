@@ -1,8 +1,11 @@
 """tests.py"""
 import datetime as dt
+import pickle
 from django.test import TestCase
 import pandas as pd  # pylint: disable=import-error
+from sklearn.linear_model import LinearRegression  # pylint: disable=import-error
 from .views import dataset
+from .views import bitcoin
 from .models import Candlestick
 
 
@@ -106,3 +109,26 @@ class CandlestickModelTests(TestCase):
         _b.set_dataset(csv)
         _b.plot()
         self.assertTrue(isinstance(_b.data, pd.core.frame.DataFrame))
+
+    def test_create_model(self):
+        """test_create_model"""
+        file_name = "test"
+        csv = pd.read_csv("bitbank/static/bitbank/datasets/latest.csv")
+        # 最後20%のデータでテスト
+        test_ratio = 0.2
+        test_start = int(len(csv) * (1 - test_ratio))
+        csv = csv[:test_start]
+
+        (data_train, _, label_train, _) = bitcoin.set_train_test_dataset(
+            csv, test_ratio
+        )
+        model = bitcoin.create_model(data_train, label_train)
+
+        pickle_file = "bitbank/static/bitbank/models/" + file_name + ".pickle"
+        with open(pickle_file, mode="wb",) as file:
+            pickle.dump(model, file)
+
+        bitcoin.calc_avg_score(csv, 1)
+        bitcoin.plot(csv, model, file_name)
+
+        self.assertTrue(isinstance(model, LinearRegression))
