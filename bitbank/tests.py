@@ -1,6 +1,7 @@
 """tests.py"""
 import datetime as dt
 from django.test import TestCase
+import pandas as pd  # pylint: disable=import-error
 from . import views
 from .models import Candlestick
 
@@ -66,17 +67,18 @@ class CandlestickModelTests(TestCase):
 
     def test_save_all_candlestick(self):
         """test_save_all_candlestick"""
+        days_ago_2 = dt.date.today() + dt.timedelta(-2)
         yesterday = dt.date.today() + dt.timedelta(-1)
-        today = dt.date.today()
-        date_range = views.get_date_range(yesterday, today)
+        date_range = views.get_date_range(days_ago_2, yesterday)
         views.save_all_candlestick(date_range)
         self.assertEqual(Candlestick.objects.all().count(), 1440)
 
     def test_save_all_candlestick_last_minute(self):
         """test_save_all_candlestick_last_minute"""
-        today = dt.date.today()
+        # FIXME: Consider timezone
+        yesterday = dt.date.today() + dt.timedelta(-1)
         tomorrow = dt.date.today() + dt.timedelta(1)
-        date_range = views.get_date_range(today, tomorrow)
+        date_range = views.get_date_range(yesterday, tomorrow)
         views.save_all_candlestick(date_range)
 
         now_ts = dt.datetime.now().timestamp()
@@ -85,10 +87,20 @@ class CandlestickModelTests(TestCase):
 
     def test_save_all_candlestick_duplicated(self):
         """test_save_all_candlestick_duplicated"""
-        today = dt.date.today()
+        # FIXME: Consider timezone
+        yesterday = dt.date.today() + dt.timedelta(-1)
         tomorrow = dt.date.today() + dt.timedelta(1)
-        date_range = views.get_date_range(today, tomorrow)
+        date_range = views.get_date_range(yesterday, tomorrow)
         views.save_all_candlestick(date_range)
         views.save_all_candlestick(date_range)  # TODO: Why not any exception are happen
+        self.assertEqual(True, True)
 
-        self.assertTrue(True)
+    def test_create_dataset(self):
+        """test_create_dataset"""
+        file_name = "test"
+        csv = pd.read_csv("bitbank/static/bitbank/datasets/candlestick.csv")
+        csv = csv[:20000]
+        _b = views.BitcoinDataset(file_name)
+        _b.set_dataset(csv)
+        _b.plot()
+        self.assertTrue(isinstance(_b.data, pd.core.frame.DataFrame))
