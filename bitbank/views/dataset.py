@@ -127,8 +127,7 @@ class BitcoinDataset:
         self.add_columns_time()
         self.remove_missing_rows()
         self.data.to_csv(
-            "bitbank/static/bitbank/datasets/" + str(self.version) + ".csv",
-            index=False,
+            "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
         )
         logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
 
@@ -147,8 +146,7 @@ class BitcoinDataset:
         self.data["weekday"] = timestamp.dt.dayofweek
         self.data["second"] = (timestamp.dt.hour * 60 + timestamp.dt.minute) * 60
         self.data.to_csv(
-            "bitbank/static/bitbank/datasets/" + str(self.version) + ".csv",
-            index=False,
+            "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
         )
 
     def remove_missing_rows(self):
@@ -186,8 +184,7 @@ class BitcoinDataset:
 
             self.data[name] = self.data["close_log"].diff(periods=i)
             self.data.to_csv(
-                "bitbank/static/bitbank/datasets/" + str(self.version) + ".csv",
-                index=False,
+                "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
             )
 
     def convert_hlc_to_log(self):
@@ -203,8 +200,7 @@ class BitcoinDataset:
 
             self.data[name] = np.log(self.data[column])
             self.data.to_csv(
-                "bitbank/static/bitbank/datasets/" + str(self.version) + ".csv",
-                index=False,
+                "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
             )
 
     def add_column_next_extreme(self):
@@ -238,8 +234,7 @@ class BitcoinDataset:
             )
 
         self.data.to_csv(
-            "bitbank/static/bitbank/datasets/" + str(self.version) + ".csv",
-            index=False,
+            "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
         )
 
     def plot(self):
@@ -253,6 +248,4 @@ class BitcoinDataset:
         graph.plot_close(data2, ax2)
         graph.plot_label(data2, ax2)
 
-        plt.savefig(
-            "bitbank/static/bitbank/graphs/" + str(self.version) + "_dataset.png"
-        )
+        plt.savefig("bitbank/static/bitbank/graphs/" + self.version + "_dataset.png")
