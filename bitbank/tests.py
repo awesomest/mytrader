@@ -46,8 +46,8 @@ class CandlestickModelTests(TestCase):
 
     def test_fetch_candlestick_from_bitbank(self):
         """test_fetch_candlestick_from_bitbank"""
-        data = views.fetch_candlestick_from_bitbank("20170610")
-        self.assertEqual(len(data), 1440)
+        candlestick_list = views.fetch_candlestick_from_bitbank("20170610")
+        self.assertEqual(len(candlestick_list), 1440)
 
     def test_get_date_range(self):
         """test_get_date_range"""
@@ -55,3 +55,12 @@ class CandlestickModelTests(TestCase):
         stop_date = dt.date(2017, 4, 14)
         data = views.get_date_range(start_date, stop_date)
         self.assertEqual(len(list(data)), 59)
+
+    def test_convert_candlestick_to_inserting(self):
+        """test_convert_candlestick_to_inserting"""
+        candlestick_list = [
+            ["312250", "312250", "312250", "312250", "0.0021", 1497052800000]
+        ]
+        insert_values = views.convert_candlestick_to_inserting(candlestick_list)
+        print(type(insert_values))
+        self.assertEqual(isinstance(insert_values[0], Candlestick), True)

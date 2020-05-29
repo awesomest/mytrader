@@ -50,7 +50,7 @@ def fetch_candlestick_from_bitbank(date_str: str):
     Params:
         date_str (str): string of date
     Returns:
-        list: all of list of candlestick
+        list: the shape is (1440, 5)
     """
     pub = python_bitbankcc.public()
     value = pub.get_candlestick("btc_jpy", "1min", date_str)
@@ -68,3 +68,25 @@ def get_date_range(start_date: dt.datetime, stop_date: dt.datetime):
     """
     diff = (stop_date - start_date).days
     return (start_date + dt.timedelta(i) for i in range(diff))
+
+
+def convert_candlestick_to_inserting(candlestick_list: list):
+    """
+    Params:
+        candlestick_list (list): list of date
+    Returns:
+        list: list of Candlestick
+    """
+    insert_values = []
+    for ohlcv in candlestick_list:
+        data = Candlestick(
+            unixtime=ohlcv[0],
+            open=ohlcv[1],
+            high=ohlcv[2],
+            low=ohlcv[3],
+            close=ohlcv[4],
+            volume=ohlcv[5] / 1000,
+        )
+        insert_values.append(data)
+
+    return insert_values
