@@ -62,5 +62,23 @@ class CandlestickModelTests(TestCase):
             ["312250", "312250", "312250", "312250", "0.0021", 1497052800000]
         ]
         insert_values = views.convert_candlestick_to_inserting(candlestick_list)
-        print(type(insert_values))
         self.assertEqual(isinstance(insert_values[0], Candlestick), True)
+
+    def test_save_all_candlestick(self):
+        """test_save_all_candlestick"""
+        yesterday = dt.date.today() + dt.timedelta(-1)
+        today = dt.date.today()
+        date_range = views.get_date_range(yesterday, today)
+        views.save_all_candlestick(date_range)
+        self.assertEqual(Candlestick.objects.all().count(), 1440)
+
+    def test_save_all_candlestick_last_minute(self):
+        """test_save_all_candlestick_last_minute"""
+        today = dt.date.today()
+        tomorrow = dt.date.today() + dt.timedelta(1)
+        date_range = views.get_date_range(today, tomorrow)
+        views.save_all_candlestick(date_range)
+
+        now_ts = dt.datetime.now().timestamp()
+        latest_unixtime = Candlestick.objects.order_by("-unixtime")[0].unixtime
+        self.assertTrue(now_ts - 60 < latest_unixtime <= now_ts)

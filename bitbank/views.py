@@ -20,8 +20,12 @@ def index(request):
     return render(request, "bitbank/index.html")
 
 
-def fetch():
+def fetch(request):
     """fetch"""
+    today = dt.date.today()
+    tomorrow = dt.date.today() + dt.timedelta(1)
+    date_range = get_date_range(today, tomorrow)
+    save_all_candlestick(date_range)
     return HttpResponseRedirect(reverse("bitbank:results", args=("success",)))
 
 
@@ -50,7 +54,11 @@ def fetch_candlestick_from_bitbank(date_str: str):
     Params:
         date_str (str): string of date
     Returns:
-        list: the shape is (1440, 5)
+        list: the shape is (1440, 5) like following
+            [
+                [open, high, low, close, volume, unixtime],
+                ...
+            ]
     """
     pub = python_bitbankcc.public()
     value = pub.get_candlestick("btc_jpy", "1min", date_str)
@@ -80,13 +88,26 @@ def convert_candlestick_to_inserting(candlestick_list: list):
     insert_values = []
     for ohlcv in candlestick_list:
         data = Candlestick(
-            unixtime=ohlcv[0],
-            open=ohlcv[1],
-            high=ohlcv[2],
-            low=ohlcv[3],
-            close=ohlcv[4],
-            volume=ohlcv[5] / 1000,
+            unixtime=ohlcv[5] / 1000,
+            open=ohlcv[0],
+            high=ohlcv[1],
+            low=ohlcv[2],
+            close=ohlcv[3],
+            volume=ohlcv[4],
         )
         insert_values.append(data)
 
     return insert_values
+
+
+def save_all_candlestick(date_range):
+    """
+    Insert all candlesticks into DB
+    """
+
+    for date in date_range:
+        logger.info("date: {:%Y-%m-%d}".format(date))
+        date_str = date.strftime("%Y%m%d")
+        candlestick_list = fetch_candlestick_from_bitbank(date_str)
+        insert_values = convert_candlestick_to_inserting(candlestick_list)
+        Candlestick.objects.bulk_create(insert_values, ignore_conflicts=True)
