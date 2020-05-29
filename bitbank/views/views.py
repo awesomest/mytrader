@@ -31,8 +31,13 @@ def fetch(request):
 
 def dataset(request, version):
     """dataset"""
+    if version == "candlestick":
+        return HttpResponseRedirect(reverse("bitbank:results", args=("failed",)))
+
     # TODO: Load from DB
-    csv = pd.read_csv("bitbank/static/bitbank/datasets/test3.csv")
+    csv = pd.read_csv(
+        "bitbank/static/bitbank/datasets/candlestick.csv"
+    )  # TODO: Check error
     _b = ds.BitcoinDataset(version)
     _b.set_dataset(csv)
     _b.plot()
