@@ -66,17 +66,18 @@ class CandlestickModelTests(TestCase):
 
     def test_save_all_candlestick(self):
         """test_save_all_candlestick"""
+        days_ago_2 = dt.date.today() + dt.timedelta(-2)
         yesterday = dt.date.today() + dt.timedelta(-1)
-        today = dt.date.today()
-        date_range = views.get_date_range(yesterday, today)
+        date_range = views.get_date_range(days_ago_2, yesterday)
         views.save_all_candlestick(date_range)
         self.assertEqual(Candlestick.objects.all().count(), 1440)
 
     def test_save_all_candlestick_last_minute(self):
         """test_save_all_candlestick_last_minute"""
-        today = dt.date.today()
+        # FIXME: Consider timezone
+        yesterday = dt.date.today() + dt.timedelta(-1)
         tomorrow = dt.date.today() + dt.timedelta(1)
-        date_range = views.get_date_range(today, tomorrow)
+        date_range = views.get_date_range(yesterday, tomorrow)
         views.save_all_candlestick(date_range)
 
         now_ts = dt.datetime.now().timestamp()
@@ -85,10 +86,10 @@ class CandlestickModelTests(TestCase):
 
     def test_save_all_candlestick_duplicated(self):
         """test_save_all_candlestick_duplicated"""
-        today = dt.date.today()
+        # FIXME: Consider timezone
+        yesterday = dt.date.today() + dt.timedelta(-1)
         tomorrow = dt.date.today() + dt.timedelta(1)
-        date_range = views.get_date_range(today, tomorrow)
+        date_range = views.get_date_range(yesterday, tomorrow)
         views.save_all_candlestick(date_range)
         views.save_all_candlestick(date_range)  # TODO: Why not any exception are happen
-
-        self.assertTrue(True)
+        self.assertEqual(True, True)

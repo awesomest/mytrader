@@ -64,9 +64,13 @@ def fetch_candlestick_from_bitbank(date_str: str):
             ]
     """
     pub = python_bitbankcc.public()
-    value = pub.get_candlestick("btc_jpy", "1min", date_str)
-    candlestick = value["candlestick"][0]["ohlcv"]
-    return candlestick
+    try:
+        value = pub.get_candlestick("btc_jpy", "1min", date_str)
+    except Exception:  # pylint: disable=broad-except
+        return []
+    else:
+        candlestick = value["candlestick"][0]["ohlcv"]
+        return candlestick
 
 
 def get_date_range(start_date: dt.datetime, stop_date: dt.datetime):
