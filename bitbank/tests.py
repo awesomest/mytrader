@@ -62,7 +62,7 @@ class CandlestickModelTests(TestCase):
             ["312250", "312250", "312250", "312250", "0.0021", 1497052800000]
         ]
         insert_values = views.convert_candlestick_to_inserting(candlestick_list)
-        self.assertEqual(isinstance(insert_values[0], Candlestick), True)
+        self.assertTrue(isinstance(insert_values[0], Candlestick))
 
     def test_save_all_candlestick(self):
         """test_save_all_candlestick"""
