@@ -82,3 +82,13 @@ class CandlestickModelTests(TestCase):
         now_ts = dt.datetime.now().timestamp()
         latest_unixtime = Candlestick.objects.order_by("-unixtime")[0].unixtime
         self.assertTrue(now_ts - 60 < latest_unixtime <= now_ts)
+
+    def test_save_all_candlestick_duplicated(self):
+        """test_save_all_candlestick_duplicated"""
+        today = dt.date.today()
+        tomorrow = dt.date.today() + dt.timedelta(1)
+        date_range = views.get_date_range(today, tomorrow)
+        views.save_all_candlestick(date_range)
+        views.save_all_candlestick(date_range)  # TODO: Why not any exception are happen
+
+        self.assertTrue(True)
