@@ -1,6 +1,7 @@
 """tests.py"""
 import datetime as dt
 from django.test import TestCase
+import pandas as pd  # pylint: disable=import-error
 from . import views
 from .models import Candlestick
 
@@ -93,3 +94,13 @@ class CandlestickModelTests(TestCase):
         views.save_all_candlestick(date_range)
         views.save_all_candlestick(date_range)  # TODO: Why not any exception are happen
         self.assertEqual(True, True)
+
+    def test_create_dataset(self):
+        """test_create_dataset"""
+        file_name = "test"
+        csv = pd.read_csv("bitbank/static/bitbank/datasets/candlestick.csv")
+        csv = csv[:20000]
+        _b = views.BitcoinDataset(file_name)
+        _b.set_dataset(csv)
+        _b.plot()
+        self.assertTrue(isinstance(_b.data, pd.core.frame.DataFrame))

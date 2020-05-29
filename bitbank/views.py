@@ -2,20 +2,49 @@
 import inspect
 import datetime as dt
 from logging import getLogger, basicConfig, DEBUG
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-import python_bitbankcc  # pylint: disable=import-error
 from bitbank.models import Candlestick
+from scipy import signal  # pylint: disable=import-error
+import python_bitbankcc  # pylint: disable=import-error
 import pandas as pd  # pylint: disable=import-error
 import numpy as np  # pylint: disable=import-error
-from scipy.stats import linregress  # pylint: disable=import-error
-from scipy import signal  # pylint: disable=import-error
+import matplotlib  # pylint: disable=import-error
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # pylint: disable=import-error,wrong-import-position
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
 basicConfig(format=FORMATTER)
 logger = getLogger(__name__)
 logger.setLevel(DEBUG)
+
+
+TRAIN_COLUMNS = [
+    "day",
+    "weekday",
+    "second",
+    "volume",
+    "open_log",
+    "high_log",
+    "low_log",
+    "close_log",
+    "close_log-1",
+    "close_log-2",
+    "close_log-5",
+    "close_log-10",
+    "close_log-15",
+    "close_log-30",
+    "close_log-60",
+    "close_log-120",
+    "close_log-240",
+    "close_log-480",
+    "close_log-720",
+    "close_log-1440",
+    "close_log-2880",
+    "close_log-10080",
+]
 
 
 def index(request):
@@ -30,6 +59,16 @@ def fetch(request):
     date_range = get_date_range(today, tomorrow)
     save_all_candlestick(date_range)
     return HttpResponseRedirect(reverse("bitbank:results", args=("success",)))
+
+
+def dataset(request, version):
+    """dataset"""
+    # TODO: Load from DB
+    csv = pd.read_csv("bitbank/static/bitbank/datasets/test3.csv")
+    _b = BitcoinDataset(version)
+    _b.set_dataset(csv)
+    _b.plot()
+    return redirect("/static/bitbank/graphs/" + version + ".png")
 
 
 def results(request, results_str):
@@ -140,47 +179,15 @@ class BitcoinDataset:
         logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.data = csv
         self.convert_hlc_to_log()
-        # self.add_column_trend()  # TODO: 不要になったら削除
-        # self.add_column_extreme_60_later()  # TODO: 不要になったら削除
-        # self.add_column_trend_60_later()  # TODO: 不要になったら削除
         self.add_column_next_extreme()
-        # self.add_columns_close_log()
-        # self.add_columns_time()
-        # self.remove_missing_rows()
-        # self.data.to_csv("datasets/" + str(self.version) + ".csv", index=False)
+        self.add_columns_close_log()
+        self.add_columns_time()
+        self.remove_missing_rows()
+        self.data.to_csv(
+            "bitbank/static/bitbank/datasets/" + str(self.version) + ".csv",
+            index=False,
+        )
         logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
-
-    def add_column_extreme_60_later(self):
-        """
-        現在から60分後までの最大値or最小値を追加
-        TODO: dataframe.rolling を使用する
-        """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        if "extreme60" in self.data.columns:
-            return
-
-        for index, row in self.data.iterrows():
-            if index % 10000 == 0:
-                logger.info("  index: {:.2%}".format(index / len(self.data)))
-            last_index = index + self.MINUTES_OF_HOURS
-            if last_index > len(self.data):
-                continue
-
-            # TODO: closeの最大・最小でも要確認
-            data_in_hours = self.data[["high", "low"]][index:last_index]
-            highest_index = data_in_hours["high"].idxmax()
-            highest = data_in_hours["high"][highest_index]
-            lowest_index = data_in_hours["low"].idxmin()
-            lowest = data_in_hours["low"][lowest_index]
-
-            if highest_index < lowest_index:
-                extreme60 = highest / row["open"]
-            else:
-                extreme60 = lowest / row["open"]
-
-            self.data.at[index, "extreme60"] = extreme60
-
-        self.data.to_csv("datasets/" + str(self.version) + ".csv", index=False)
 
     def add_columns_time(self):
         """
@@ -190,12 +197,16 @@ class BitcoinDataset:
         if "second" in self.data.columns:
             return
 
-        # timestamp = pd.Series([dt.fromtimestamp(i) for i in self.data["unixtime"]])
-        # self.data["day"] = timestamp.dt.day
-        # self.data["weekday"] = timestamp.dt.dayofweek
-        # self.data["second"] = (timestamp.dt.hour * 60 + timestamp.dt.minute) * 60
-        # # self.data.drop(columns=["unixtime"], inplace=True)
-        # self.data.to_csv("datasets/" + str(self.version) + ".csv", index=False)
+        timestamp = pd.Series(
+            [dt.datetime.fromtimestamp(i) for i in self.data["unixtime"]]
+        )
+        self.data["day"] = timestamp.dt.day
+        self.data["weekday"] = timestamp.dt.dayofweek
+        self.data["second"] = (timestamp.dt.hour * 60 + timestamp.dt.minute) * 60
+        self.data.to_csv(
+            "bitbank/static/bitbank/datasets/" + str(self.version) + ".csv",
+            index=False,
+        )
 
     def remove_missing_rows(self):
         """
@@ -203,40 +214,6 @@ class BitcoinDataset:
         """
         logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.data.dropna(inplace=True)
-
-    def add_column_trend(self):
-        """
-        60分前から現在までのトレンドを追加
-        """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        if "trend" in self.data.columns:
-            return
-
-        for index, _ in self.data.iterrows():
-            if index % 10000 == 0:
-                logger.info("  index: {:.2%}".format(index / len(self.data)))
-            first_index = index - self.MINUTES_OF_HOURS
-            if first_index < 0:
-                continue
-
-            data_in_hours = self.data[["close"]][first_index:index]
-
-            _x = list(range(len(data_in_hours)))
-            trend_line = linregress(x=_x, y=data_in_hours["close"])
-            self.data.at[index, "trend"] = trend_line[0] / data_in_hours["close"].iat[0]
-
-        self.data.to_csv("datasets/" + str(self.version) + ".csv", index=False)
-
-    def add_column_trend_60_later(self):
-        """
-        現在から60分後までのトレンドを追加
-        """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        if "trend60" in self.data.columns:
-            return
-
-        self.data["trend60"] = self.data["trend"].shift(-1 * self.MINUTES_OF_HOURS)
-        self.data.to_csv("datasets/" + str(self.version) + ".csv", index=False)
 
     def add_columns_close_log(self):
         """
@@ -250,7 +227,10 @@ class BitcoinDataset:
                 continue
 
             self.data[name] = self.data["close_log"].diff(periods=i)
-            self.data.to_csv("datasets/" + str(self.version) + ".csv", index=False)
+            self.data.to_csv(
+                "bitbank/static/bitbank/datasets/" + str(self.version) + ".csv",
+                index=False,
+            )
 
     def convert_hlc_to_log(self):
         """
@@ -284,18 +264,18 @@ class BitcoinDataset:
         max_min_ids = np.concatenate([max_ids[0], min_ids[0]])
         max_min_ids = np.sort(max_min_ids)
         next_idx = 0
-        for index, row in self.data.iterrows():
-            if index % 10000 == 0:
-                logger.info("  index: {:.2%}".format(index / len(self.data)))
+        for i, row in self.data.iterrows():
+            if i % 10000 == 0:
+                logger.info("  index: {:.2%}".format(i / len(self.data)))
 
             if next_idx >= len(max_min_ids):
                 break
 
             _ni = max_min_ids[next_idx]
-            if index >= _ni:
+            if i >= _ni:
                 next_idx += 1
             # TODO: Change open_log to close_log
-            self.data.at[index, column_name] = (
+            self.data.at[i, column_name] = (
                 self.data.at[_ni, "close_log"] - row["open_log"]
             )
 
@@ -303,3 +283,62 @@ class BitcoinDataset:
             "bitbank/static/bitbank/datasets/" + str(self.version) + ".csv",
             index=False,
         )
+
+    def plot(self):
+        """plot"""
+
+        _, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
+        plot_close(self.data, ax1)
+        plot_label(self.data, ax1)
+
+        data2 = self.data[-500:]
+        plot_close(data2, ax2)
+        plot_label(data2, ax2)
+
+        plt.savefig("bitbank/static/bitbank/graphs/" + str(self.version) + ".png")
+
+
+def plot_predict(data, model, _ax):
+    """
+    :param data:
+    :param model:
+    :param _ax:
+    :return:
+    """
+
+    data.reset_index(drop=True, inplace=True)
+    _p = list(model.predict(data[TRAIN_COLUMNS]))
+    pred = pd.DataFrame(_p)
+    pred.columns = ["pred"]
+    y_predict = np.exp(data["close_log"] + pred["pred"])
+
+    _ax.plot(list(range(len(data))), y_predict, color="red", label="predict")
+    _ax.legend()
+
+
+def plot_label(data, _ax):
+    """
+    :param data:
+    :param _ax:
+    :return:
+    """
+
+    data.reset_index(drop=True, inplace=True)
+    y_label = np.exp(data["close_log"] + data["next_extreme_log"])
+
+    _ax.plot(list(range(len(data))), y_label, color="orange", label="label")
+    _ax.legend()
+
+
+def plot_close(data, _ax):
+    """
+    :param data:
+    :param _ax:
+    :return:
+    """
+
+    data.reset_index(drop=True, inplace=True)
+    y_close = data["close"]
+
+    _ax.plot(list(range(len(data))), y_close, color="blue", label="close")
+    _ax.legend()
