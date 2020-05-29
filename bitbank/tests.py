@@ -2,7 +2,7 @@
 import datetime as dt
 from django.test import TestCase
 import pandas as pd  # pylint: disable=import-error
-from . import views
+from .views import dataset
 from .models import Candlestick
 
 
@@ -35,26 +35,26 @@ class CandlestickModelTests(TestCase):
 
     def test_select_oldest_date(self):
         """test_select_oldest_date"""
-        latest_date = views.select_latest_date()
+        latest_date = dataset.select_latest_date()
         self.assertEqual(latest_date, dt.date(2017, 2, 14))
 
     def test_select_last_date(self):
         """test_select_last_date"""
         create_oldest_candlestick()
         create_latest_candlestick()
-        latest_date = views.select_latest_date()
+        latest_date = dataset.select_latest_date()
         self.assertEqual(latest_date, dt.date(2017, 6, 10))
 
     def test_fetch_candlestick_from_bitbank(self):
         """test_fetch_candlestick_from_bitbank"""
-        candlestick_list = views.fetch_candlestick_from_bitbank("20170610")
+        candlestick_list = dataset.fetch_candlestick_from_bitbank("20170610")
         self.assertEqual(len(candlestick_list), 1440)
 
     def test_get_date_range(self):
         """test_get_date_range"""
         start_date = dt.date(2017, 2, 14)
         stop_date = dt.date(2017, 4, 14)
-        data = views.get_date_range(start_date, stop_date)
+        data = dataset.get_date_range(start_date, stop_date)
         self.assertEqual(len(list(data)), 59)
 
     def test_convert_candlestick_to_inserting(self):
@@ -62,15 +62,15 @@ class CandlestickModelTests(TestCase):
         candlestick_list = [
             ["312250", "312250", "312250", "312250", "0.0021", 1497052800000]
         ]
-        insert_values = views.convert_candlestick_to_inserting(candlestick_list)
+        insert_values = dataset.convert_candlestick_to_inserting(candlestick_list)
         self.assertTrue(isinstance(insert_values[0], Candlestick))
 
     def test_save_all_candlestick(self):
         """test_save_all_candlestick"""
         days_ago_2 = dt.date.today() + dt.timedelta(-2)
         yesterday = dt.date.today() + dt.timedelta(-1)
-        date_range = views.get_date_range(days_ago_2, yesterday)
-        views.save_all_candlestick(date_range)
+        date_range = dataset.get_date_range(days_ago_2, yesterday)
+        dataset.save_all_candlestick(date_range)
         self.assertEqual(Candlestick.objects.all().count(), 1440)
 
     def test_save_all_candlestick_last_minute(self):
@@ -78,8 +78,8 @@ class CandlestickModelTests(TestCase):
         # FIXME: Consider timezone
         yesterday = dt.date.today() + dt.timedelta(-1)
         tomorrow = dt.date.today() + dt.timedelta(1)
-        date_range = views.get_date_range(yesterday, tomorrow)
-        views.save_all_candlestick(date_range)
+        date_range = dataset.get_date_range(yesterday, tomorrow)
+        dataset.save_all_candlestick(date_range)
 
         now_ts = dt.datetime.now().timestamp()
         latest_unixtime = Candlestick.objects.order_by("-unixtime")[0].unixtime
@@ -90,9 +90,11 @@ class CandlestickModelTests(TestCase):
         # FIXME: Consider timezone
         yesterday = dt.date.today() + dt.timedelta(-1)
         tomorrow = dt.date.today() + dt.timedelta(1)
-        date_range = views.get_date_range(yesterday, tomorrow)
-        views.save_all_candlestick(date_range)
-        views.save_all_candlestick(date_range)  # TODO: Why not any exception are happen
+        date_range = dataset.get_date_range(yesterday, tomorrow)
+        dataset.save_all_candlestick(date_range)
+        dataset.save_all_candlestick(
+            date_range
+        )  # TODO: Why not any exception are happen
         self.assertEqual(True, True)
 
     def test_create_dataset(self):
@@ -100,7 +102,7 @@ class CandlestickModelTests(TestCase):
         file_name = "test"
         csv = pd.read_csv("bitbank/static/bitbank/datasets/candlestick.csv")
         csv = csv[:20000]
-        _b = views.BitcoinDataset(file_name)
+        _b = dataset.BitcoinDataset(file_name)
         _b.set_dataset(csv)
         _b.plot()
         self.assertTrue(isinstance(_b.data, pd.core.frame.DataFrame))

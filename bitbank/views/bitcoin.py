@@ -1,0 +1,26 @@
+"""bitcoin.py"""
+
+TRAIN_COLUMNS = [
+    "day",
+    "weekday",
+    "second",
+    "volume",
+    "open_log",
+    "high_log",
+    "low_log",
+    "close_log",
+    "close_log-1",
+    "close_log-2",
+    "close_log-5",
+    "close_log-10",
+    "close_log-15",
+    "close_log-30",
+    "close_log-60",
+    "close_log-120",
+    "close_log-240",
+    "close_log-480",
+    "close_log-720",
+    "close_log-1440",
+    "close_log-2880",
+    "close_log-10080",
+]

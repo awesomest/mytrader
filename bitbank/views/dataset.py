@@ -1,12 +1,9 @@
-"""views.py"""
+"""dataset.py"""
 import inspect
 import datetime as dt
 from logging import getLogger, basicConfig, DEBUG
-from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-from bitbank.models import Candlestick
 from scipy import signal  # pylint: disable=import-error
+from bitbank.models import Candlestick
 import python_bitbankcc  # pylint: disable=import-error
 import pandas as pd  # pylint: disable=import-error
 import numpy as np  # pylint: disable=import-error
@@ -14,66 +11,12 @@ import matplotlib  # pylint: disable=import-error
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # pylint: disable=import-error,wrong-import-position
+from . import graph  # pylint: disable=wrong-import-position
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
 basicConfig(format=FORMATTER)
 logger = getLogger(__name__)
 logger.setLevel(DEBUG)
-
-
-TRAIN_COLUMNS = [
-    "day",
-    "weekday",
-    "second",
-    "volume",
-    "open_log",
-    "high_log",
-    "low_log",
-    "close_log",
-    "close_log-1",
-    "close_log-2",
-    "close_log-5",
-    "close_log-10",
-    "close_log-15",
-    "close_log-30",
-    "close_log-60",
-    "close_log-120",
-    "close_log-240",
-    "close_log-480",
-    "close_log-720",
-    "close_log-1440",
-    "close_log-2880",
-    "close_log-10080",
-]
-
-
-def index(request):
-    """index"""
-    return render(request, "bitbank/index.html")
-
-
-def fetch(request):
-    """fetch"""
-    today = dt.date.today()
-    tomorrow = dt.date.today() + dt.timedelta(1)
-    date_range = get_date_range(today, tomorrow)
-    save_all_candlestick(date_range)
-    return HttpResponseRedirect(reverse("bitbank:results", args=("success",)))
-
-
-def dataset(request, version):
-    """dataset"""
-    # TODO: Load from DB
-    csv = pd.read_csv("bitbank/static/bitbank/datasets/test3.csv")
-    _b = BitcoinDataset(version)
-    _b.set_dataset(csv)
-    _b.plot()
-    return redirect("/static/bitbank/graphs/" + version + ".png")
-
-
-def results(request, results_str):
-    """results"""
-    return render(request, "bitbank/results.html", {"results": results_str})
 
 
 def select_latest_date():
@@ -220,7 +163,22 @@ class BitcoinDataset:
         指定した時間前のclose_logの差を追加
         """
         logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        minute_list = [1, 2, 5, 10, 15, 30, 60, 120, 240, 480, 720, 1440, 2880, 10080]
+        minute_list = [
+            1,
+            2,
+            5,
+            10,
+            15,
+            30,
+            60,
+            120,
+            240,
+            480,
+            720,
+            1440,
+            2880,
+            10080,
+        ]
         for i in minute_list:
             name = "close_log-" + str(i)
             if name in self.data.columns:
@@ -288,57 +246,11 @@ class BitcoinDataset:
         """plot"""
 
         _, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
-        plot_close(self.data, ax1)
-        plot_label(self.data, ax1)
+        graph.plot_close(self.data, ax1)
+        graph.plot_label(self.data, ax1)
 
         data2 = self.data[-500:]
-        plot_close(data2, ax2)
-        plot_label(data2, ax2)
+        graph.plot_close(data2, ax2)
+        graph.plot_label(data2, ax2)
 
         plt.savefig("bitbank/static/bitbank/graphs/" + str(self.version) + ".png")
-
-
-def plot_predict(data, model, _ax):
-    """
-    :param data:
-    :param model:
-    :param _ax:
-    :return:
-    """
-
-    data.reset_index(drop=True, inplace=True)
-    _p = list(model.predict(data[TRAIN_COLUMNS]))
-    pred = pd.DataFrame(_p)
-    pred.columns = ["pred"]
-    y_predict = np.exp(data["close_log"] + pred["pred"])
-
-    _ax.plot(list(range(len(data))), y_predict, color="red", label="predict")
-    _ax.legend()
-
-
-def plot_label(data, _ax):
-    """
-    :param data:
-    :param _ax:
-    :return:
-    """
-
-    data.reset_index(drop=True, inplace=True)
-    y_label = np.exp(data["close_log"] + data["next_extreme_log"])
-
-    _ax.plot(list(range(len(data))), y_label, color="orange", label="label")
-    _ax.legend()
-
-
-def plot_close(data, _ax):
-    """
-    :param data:
-    :param _ax:
-    :return:
-    """
-
-    data.reset_index(drop=True, inplace=True)
-    y_close = data["close"]
-
-    _ax.plot(list(range(len(data))), y_close, color="blue", label="close")
-    _ax.legend()
