@@ -1,14 +1,10 @@
-"""
-btc_watch.py
-"""
+"""bitbank_watch.py"""
 import json
 from logging import getLogger, basicConfig, DEBUG
 import socketio
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
-basicConfig(
-    filename="./try.log", format=FORMATTER,
-)
+basicConfig(format=FORMATTER)
 logger = getLogger(__name__)
 logger.setLevel(DEBUG)
 
@@ -19,7 +15,6 @@ sio = socketio.Client(
     reconnection_delay_max=30,
     logger=True,
 )
-logger.info("Created socketio client")
 
 
 @sio.event
@@ -37,7 +32,7 @@ def message(data):
     Message to server
     """
     logger.info("print message")
-    print(json.dumps(data, indent=2))
+    logger.info(json.dumps(data, indent=2))
 
 
 @sio.event
@@ -46,7 +41,3 @@ def disconnect():
     Disconnect from server
     """
     logger.info("disconnected from server")
-
-
-sio.connect("wss://stream.bitbank.cc", transports=["websocket"])
-sio.wait()
