@@ -173,21 +173,7 @@ class PredictTests(TestCase):
 
     def test_create_input_for_predict(self):
         """test_create_input_for_predict"""
-        candlestick_list = []
-        week_ago = dt.date.today() + dt.timedelta(-8)
-        tomorrow = dt.date.today() + dt.timedelta(1)
-        date_range = dataset.get_date_range(week_ago, tomorrow)
-        for date in date_range:
-            date_str = date.strftime("%Y%m%d")
-            candlestick_list.extend(dataset.fetch_candlestick_from_bitbank(date_str))
-
-        candlestick_df = pd.DataFrame(
-            candlestick_list,
-            columns=["open", "high", "low", "close", "volume", "unixtime"],
-        ).astype(float)
-        candlestick_df["unixtime"] = candlestick_df["unixtime"] / 1000
-        file_name = "test-predict"
-        data = dataset.create_input_dataset(candlestick_df, file_name)
+        data = dataset.create_realtime_input_dataset()
 
         is_success = True
         for column in bitcoin.TRAIN_COLUMNS:

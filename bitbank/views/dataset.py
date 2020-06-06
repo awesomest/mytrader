@@ -257,23 +257,32 @@ def remove_missing_rows(data: pd.DataFrame, file_name=None):
     return new_data
 
 
-def create_realtime_input_dataset(data: pd.DataFrame, file_name=None):
+def create_realtime_input_dataset():
     """
     リアルタイムの予測用データセットを作成
-    Params:
-        data (dataframe): originalデータ
-        file_name:
     Returns:
         dataframe
     """
     logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-    new_data = data.copy()
-    new_data = convert_hlc_to_log(new_data, file_name)
-    new_data = add_columns_close_log(new_data, file_name)
-    new_data = add_columns_time(new_data, file_name)
-    new_data = remove_missing_rows(new_data, file_name)
+    candlestick_list = []
+    week_ago = dt.date.today() + dt.timedelta(-8)
+    tomorrow = dt.date.today() + dt.timedelta(1)
+    date_range = get_date_range(week_ago, tomorrow)
+    for date in date_range:
+        date_str = date.strftime("%Y%m%d")
+        candlestick_list.extend(fetch_candlestick_from_bitbank(date_str))
+
+    input_dataset = pd.DataFrame(
+        candlestick_list,
+        columns=["open", "high", "low", "close", "volume", "unixtime"],
+    ).astype(float)
+    input_dataset["unixtime"] = input_dataset["unixtime"] / 1000
+    input_dataset = convert_hlc_to_log(input_dataset)
+    input_dataset = add_columns_close_log(input_dataset)
+    input_dataset = add_columns_time(input_dataset)
+    input_dataset = remove_missing_rows(input_dataset, "test01")
     logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
-    return new_data[bitcoin.TRAIN_COLUMNS]
+    return input_dataset[bitcoin.TRAIN_COLUMNS]
 
 
 def create_training_dataset(data: pd.DataFrame, file_name: str):
