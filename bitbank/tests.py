@@ -110,10 +110,9 @@ class DatasetTests(TestCase):
         file_name = "test"
         csv = pd.read_csv("bitbank/static/bitbank/datasets/candlestick.csv")
         csv = csv[:20000]
-        _b = dataset.BitcoinDataset(file_name)
-        _b.data = dataset.set_dataset(csv, file_name)
-        _b.plot()
-        self.assertTrue(isinstance(_b.data, pd.core.frame.DataFrame))
+        data = dataset.set_dataset(csv, file_name)
+        dataset.plot(data, file_name)
+        self.assertTrue(isinstance(data, pd.core.frame.DataFrame))
 
 
 class TrainingTests(TestCase):

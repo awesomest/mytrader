@@ -255,7 +255,7 @@ def set_dataset(data: pd.DataFrame, file_name: str):
     """
     データセットを作成
     Params:
-        csv (dataframe): originalデータ
+        data (dataframe): originalデータ
         file_name:
     Returns:
         dataframe
@@ -271,24 +271,21 @@ def set_dataset(data: pd.DataFrame, file_name: str):
     return new_data
 
 
-class BitcoinDataset:
+def plot(data: pd.DataFrame, file_name: str):
     """
-    BitcoinDataset
+    Params:
+        data (dataframe):
+        file_name:
+    Returns:
+        dataframe
     """
 
-    def __init__(self, version):
-        self.version = version
-        self.data = None
+    _, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
+    graph.plot_close(data, ax1)
+    graph.plot_label(data, ax1)
 
-    def plot(self):
-        """plot"""
+    data2 = data[-500:]
+    graph.plot_close(data2, ax2)
+    graph.plot_label(data2, ax2)
 
-        _, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
-        graph.plot_close(self.data, ax1)
-        graph.plot_label(self.data, ax1)
-
-        data2 = self.data[-500:]
-        graph.plot_close(data2, ax2)
-        graph.plot_label(data2, ax2)
-
-        plt.savefig("bitbank/static/bitbank/graphs/" + self.version + "_dataset.png")
+    plt.savefig("bitbank/static/bitbank/graphs/" + file_name + "_dataset.png")
