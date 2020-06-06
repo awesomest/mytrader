@@ -168,6 +168,46 @@ def add_column_next_extreme(data: pd.DataFrame, file_name: str):
     return new_data
 
 
+def add_columns_close_log(data: pd.DataFrame, file_name: str):
+    """
+    指定した時間前のclose_logの差を追加
+    Params:
+        data (dataframe):
+        file_name:
+    Returns:
+        dataframe
+    """
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+    minute_list = [
+        1,
+        2,
+        5,
+        10,
+        15,
+        30,
+        60,
+        120,
+        240,
+        480,
+        720,
+        1440,
+        2880,
+        10080,
+    ]
+    new_data = data.copy()
+    for i in minute_list:
+        name = "close_log-" + str(i)
+        if name in new_data.columns:
+            continue
+
+        new_data[name] = new_data["close_log"].diff(periods=i)
+        new_data.to_csv(
+            "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
+        )
+
+    return new_data
+
+
 class BitcoinDataset:
     """
     BitcoinDataset
@@ -187,7 +227,7 @@ class BitcoinDataset:
         self.data = csv
         self.data = convert_hlc_to_log(self.data, self.version)
         self.data = add_column_next_extreme(self.data, self.version)
-        self.add_columns_close_log()
+        self.data = add_columns_close_log(self.data, self.version)
         self.add_columns_time()
         self.remove_missing_rows()
         self.data.to_csv(
@@ -219,37 +259,6 @@ class BitcoinDataset:
         """
         logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.data.dropna(inplace=True)
-
-    def add_columns_close_log(self):
-        """
-        指定した時間前のclose_logの差を追加
-        """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        minute_list = [
-            1,
-            2,
-            5,
-            10,
-            15,
-            30,
-            60,
-            120,
-            240,
-            480,
-            720,
-            1440,
-            2880,
-            10080,
-        ]
-        for i in minute_list:
-            name = "close_log-" + str(i)
-            if name in self.data.columns:
-                continue
-
-            self.data[name] = self.data["close_log"].diff(periods=i)
-            self.data.to_csv(
-                "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
-            )
 
     def plot(self):
         """plot"""
