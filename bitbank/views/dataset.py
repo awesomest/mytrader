@@ -251,6 +251,26 @@ def remove_missing_rows(data: pd.DataFrame, file_name: str):
     return new_data
 
 
+def set_dataset(data: pd.DataFrame, file_name: str):
+    """
+    データセットを作成
+    Params:
+        csv (dataframe): originalデータ
+        file_name:
+    Returns:
+        dataframe
+    """
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+    new_data = data.copy()
+    new_data = convert_hlc_to_log(new_data, file_name)
+    new_data = add_column_next_extreme(new_data, file_name)
+    new_data = add_columns_close_log(new_data, file_name)
+    new_data = add_columns_time(new_data, file_name)
+    new_data = remove_missing_rows(new_data, file_name)
+    logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
+    return new_data
+
+
 class BitcoinDataset:
     """
     BitcoinDataset
@@ -259,21 +279,6 @@ class BitcoinDataset:
     def __init__(self, version):
         self.version = version
         self.data = None
-
-    def set_dataset(self, csv):
-        """
-        データセットを作成
-        Params:
-            csv (dataframe): originalデータ
-        """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        self.data = csv
-        self.data = convert_hlc_to_log(self.data, self.version)
-        self.data = add_column_next_extreme(self.data, self.version)
-        self.data = add_columns_close_log(self.data, self.version)
-        self.data = add_columns_time(self.data, self.version)
-        self.data = remove_missing_rows(self.data, self.version)
-        logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
 
     def plot(self):
         """plot"""

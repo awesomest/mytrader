@@ -40,7 +40,7 @@ def dataset(request, version):
         "bitbank/static/bitbank/datasets/candlestick.csv"
     )  # TODO: Check error
     _b = ds.BitcoinDataset(version)
-    _b.set_dataset(csv)
+    _b.data = ds.set_dataset(csv, version)
     _b.plot()
     return redirect("/static/bitbank/graphs/" + version + "_dataset.png")
 
