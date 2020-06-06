@@ -12,6 +12,7 @@ import matplotlib  # pylint: disable=import-error
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # pylint: disable=import-error,wrong-import-position
 from . import graph  # pylint: disable=wrong-import-position,relative-beyond-top-level
+from . import bitcoin  # pylint: disable=wrong-import-position,relative-beyond-top-level
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
 basicConfig(format=FORMATTER)
@@ -102,7 +103,7 @@ def save_all_candlestick(date_range):
         Candlestick.objects.bulk_create(insert_values, ignore_conflicts=True)
 
 
-def convert_hlc_to_log(data: pd.DataFrame, file_name: str):
+def convert_hlc_to_log(data: pd.DataFrame, file_name=None):
     """
     価格データを対数変換して追加
     Params:
@@ -120,14 +121,15 @@ def convert_hlc_to_log(data: pd.DataFrame, file_name: str):
             continue
 
         new_data[name] = np.log(new_data[column])
-        new_data.to_csv(
-            "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
-        )
+        if file_name is not None:
+            new_data.to_csv(
+                "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
+            )
 
     return new_data
 
 
-def add_column_next_extreme(data: pd.DataFrame, file_name: str):
+def add_column_next_extreme(data: pd.DataFrame, file_name=None):
     """
     期間n分の極大値・極小値
     Params:
@@ -161,14 +163,15 @@ def add_column_next_extreme(data: pd.DataFrame, file_name: str):
         # TODO: Change open_log to close_log
         new_data.at[i, column_name] = new_data.at[_ni, "close_log"] - row["open_log"]
 
-    new_data.to_csv(
-        "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
-    )
+    if file_name is not None:
+        new_data.to_csv(
+            "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
+        )
 
     return new_data
 
 
-def add_columns_close_log(data: pd.DataFrame, file_name: str):
+def add_columns_close_log(data: pd.DataFrame, file_name=None):
     """
     指定した時間前のclose_logの差を追加
     Params:
@@ -201,14 +204,15 @@ def add_columns_close_log(data: pd.DataFrame, file_name: str):
             continue
 
         new_data[name] = new_data["close_log"].diff(periods=i)
-        new_data.to_csv(
-            "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
-        )
+        if file_name is not None:
+            new_data.to_csv(
+                "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
+            )
 
     return new_data
 
 
-def add_columns_time(data: pd.DataFrame, file_name: str):
+def add_columns_time(data: pd.DataFrame, file_name=None):
     """
     現在日時に関する列を追加
     Params:
@@ -226,14 +230,15 @@ def add_columns_time(data: pd.DataFrame, file_name: str):
     new_data["day"] = timestamp.dt.day
     new_data["weekday"] = timestamp.dt.dayofweek
     new_data["second"] = (timestamp.dt.hour * 60 + timestamp.dt.minute) * 60
-    new_data.to_csv(
-        "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
-    )
+    if file_name is not None:
+        new_data.to_csv(
+            "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
+        )
 
     return new_data
 
 
-def remove_missing_rows(data: pd.DataFrame, file_name: str):
+def remove_missing_rows(data: pd.DataFrame, file_name=None):
     """
     欠損値を除外する
     Params:
@@ -245,15 +250,35 @@ def remove_missing_rows(data: pd.DataFrame, file_name: str):
     logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
     new_data = data.copy()
     new_data.dropna(inplace=True)
-    new_data.to_csv(
-        "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
-    )
+    if file_name is not None:
+        new_data.to_csv(
+            "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
+        )
     return new_data
+
+
+def create_realtime_input_dataset(data: pd.DataFrame, file_name=None):
+    """
+    リアルタイムの予測用データセットを作成
+    Params:
+        data (dataframe): originalデータ
+        file_name:
+    Returns:
+        dataframe
+    """
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+    new_data = data.copy()
+    new_data = convert_hlc_to_log(new_data, file_name)
+    new_data = add_columns_close_log(new_data, file_name)
+    new_data = add_columns_time(new_data, file_name)
+    new_data = remove_missing_rows(new_data, file_name)
+    logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
+    return new_data[bitcoin.TRAIN_COLUMNS]
 
 
 def create_training_dataset(data: pd.DataFrame, file_name: str):
     """
-    データセットを作成
+    学習用データセットを作成
     Params:
         data (dataframe): originalデータ
         file_name:
