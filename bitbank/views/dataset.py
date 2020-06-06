@@ -208,6 +208,31 @@ def add_columns_close_log(data: pd.DataFrame, file_name: str):
     return new_data
 
 
+def add_columns_time(data: pd.DataFrame, file_name: str):
+    """
+    現在日時に関する列を追加
+    Params:
+        data (dataframe):
+        file_name:
+    Returns:
+        dataframe
+    """
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+    if "second" in data.columns:
+        return data
+
+    new_data = data.copy()
+    timestamp = pd.Series([dt.datetime.fromtimestamp(i) for i in new_data["unixtime"]])
+    new_data["day"] = timestamp.dt.day
+    new_data["weekday"] = timestamp.dt.dayofweek
+    new_data["second"] = (timestamp.dt.hour * 60 + timestamp.dt.minute) * 60
+    new_data.to_csv(
+        "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
+    )
+
+    return new_data
+
+
 class BitcoinDataset:
     """
     BitcoinDataset
@@ -228,30 +253,12 @@ class BitcoinDataset:
         self.data = convert_hlc_to_log(self.data, self.version)
         self.data = add_column_next_extreme(self.data, self.version)
         self.data = add_columns_close_log(self.data, self.version)
-        self.add_columns_time()
+        self.data = add_columns_time(self.data, self.version)
         self.remove_missing_rows()
         self.data.to_csv(
             "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
         )
         logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
-
-    def add_columns_time(self):
-        """
-        現在日時に関する列を追加
-        """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        if "second" in self.data.columns:
-            return
-
-        timestamp = pd.Series(
-            [dt.datetime.fromtimestamp(i) for i in self.data["unixtime"]]
-        )
-        self.data["day"] = timestamp.dt.day
-        self.data["weekday"] = timestamp.dt.dayofweek
-        self.data["second"] = (timestamp.dt.hour * 60 + timestamp.dt.minute) * 60
-        self.data.to_csv(
-            "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
-        )
 
     def remove_missing_rows(self):
         """
