@@ -81,7 +81,7 @@ def simulate(request, version):
     y_assets = _s.simulate(data, model)
     print(y_assets[-1])
 
-    simulator.plot(data, model, y_assets, version + "_simulate")
+    simulator.plot(data, model, y_assets, version)
     return redirect("/static/bitbank/graphs/" + version + "_predict.png")
 
 

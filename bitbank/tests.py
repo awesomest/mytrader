@@ -164,7 +164,7 @@ class SimulatorTests(TestCase):
         y_assets = _s.simulate(data, model)
         print(y_assets[-1])
 
-        simulator.plot(data, model, y_assets, file_name + "_simulate")
+        simulator.plot(data, model, y_assets, file_name)
         self.assertGreater(len(y_assets), 0)
 
 
