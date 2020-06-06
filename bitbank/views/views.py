@@ -39,7 +39,7 @@ def dataset(request, version):
     csv = pd.read_csv(
         "bitbank/static/bitbank/datasets/candlestick.csv"
     )  # TODO: Check error
-    data = ds.set_dataset(csv, version)
+    data = ds.create_training_dataset(csv, version)
     ds.plot(data, version)
     return redirect("/static/bitbank/graphs/" + version + "_dataset.png")
 
@@ -81,7 +81,7 @@ def simulate(request, version):
     y_assets = _s.simulate(data, model)
     print(y_assets[-1])
 
-    simulator.plot(data, model, y_assets, version + "_simulate")
+    simulator.plot(data, model, y_assets, version)
     return redirect("/static/bitbank/graphs/" + version + "_predict.png")
 
 

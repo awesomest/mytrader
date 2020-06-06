@@ -110,7 +110,7 @@ class DatasetTests(TestCase):
         file_name = "test"
         csv = pd.read_csv("bitbank/static/bitbank/datasets/candlestick.csv")
         csv = csv[:20000]
-        data = dataset.set_dataset(csv, file_name)
+        data = dataset.create_training_dataset(csv, file_name)
         dataset.plot(data, file_name)
         self.assertTrue(isinstance(data, pd.core.frame.DataFrame))
 
@@ -164,5 +164,21 @@ class SimulatorTests(TestCase):
         y_assets = _s.simulate(data, model)
         print(y_assets[-1])
 
-        simulator.plot(data, model, y_assets, file_name + "_simulate")
+        simulator.plot(data, model, y_assets, file_name)
         self.assertGreater(len(y_assets), 0)
+
+
+class PredictTests(TestCase):
+    """PredictTests"""
+
+    def test_create_input_for_predict(self):
+        """test_create_input_for_predict"""
+        data = dataset.create_realtime_input_dataset()
+
+        is_success = True
+        for column in bitcoin.TRAIN_COLUMNS:
+            if column not in data.columns:
+                is_success = False
+                break
+
+        self.assertTrue(is_success)
