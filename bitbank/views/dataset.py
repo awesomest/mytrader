@@ -127,6 +127,47 @@ def convert_hlc_to_log(data: pd.DataFrame, file_name: str):
     return new_data
 
 
+def add_column_next_extreme(data: pd.DataFrame, file_name: str):
+    """
+    期間n分の極大値・極小値
+    Params:
+        data (dataframe):
+        file_name:
+    Returns:
+        dataframe
+    """
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+    column_name = "next_extreme_log"
+    if column_name in data.columns:
+        return data
+
+    new_data = data.copy()
+    _y = new_data["close_log"].values
+    max_ids = signal.argrelmax(_y, order=1)
+    min_ids = signal.argrelmin(_y, order=1)
+    max_min_ids = np.concatenate([max_ids[0], min_ids[0]])
+    max_min_ids = np.sort(max_min_ids)
+    next_idx = 0
+    for i, row in new_data.iterrows():
+        if i % 10000 == 0:
+            logger.info("  index: {:.2%}".format(i / len(new_data)))
+
+        if next_idx >= len(max_min_ids):
+            break
+
+        _ni = max_min_ids[next_idx]
+        if i >= _ni:
+            next_idx += 1
+        # TODO: Change open_log to close_log
+        new_data.at[i, column_name] = new_data.at[_ni, "close_log"] - row["open_log"]
+
+    new_data.to_csv(
+        "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
+    )
+
+    return new_data
+
+
 class BitcoinDataset:
     """
     BitcoinDataset
@@ -145,7 +186,7 @@ class BitcoinDataset:
         logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.data = csv
         self.data = convert_hlc_to_log(self.data, self.version)
-        self.add_column_next_extreme()
+        self.data = add_column_next_extreme(self.data, self.version)
         self.add_columns_close_log()
         self.add_columns_time()
         self.remove_missing_rows()
@@ -209,40 +250,6 @@ class BitcoinDataset:
             self.data.to_csv(
                 "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
             )
-
-    def add_column_next_extreme(self):
-        """
-        期間n分の極大値・極小値
-        """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        column_name = "next_extreme_log"
-        if column_name in self.data.columns:
-            return
-
-        _y = self.data["close_log"].values
-        max_ids = signal.argrelmax(_y, order=1)
-        min_ids = signal.argrelmin(_y, order=1)
-        max_min_ids = np.concatenate([max_ids[0], min_ids[0]])
-        max_min_ids = np.sort(max_min_ids)
-        next_idx = 0
-        for i, row in self.data.iterrows():
-            if i % 10000 == 0:
-                logger.info("  index: {:.2%}".format(i / len(self.data)))
-
-            if next_idx >= len(max_min_ids):
-                break
-
-            _ni = max_min_ids[next_idx]
-            if i >= _ni:
-                next_idx += 1
-            # TODO: Change open_log to close_log
-            self.data.at[i, column_name] = (
-                self.data.at[_ni, "close_log"] - row["open_log"]
-            )
-
-        self.data.to_csv(
-            "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
-        )
 
     def plot(self):
         """plot"""
