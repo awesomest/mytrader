@@ -251,7 +251,7 @@ def remove_missing_rows(data: pd.DataFrame, file_name: str):
     return new_data
 
 
-def set_dataset(data: pd.DataFrame, file_name: str):
+def create_training_dataset(data: pd.DataFrame, file_name: str):
     """
     データセットを作成
     Params:
