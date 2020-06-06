@@ -11,7 +11,7 @@ import matplotlib  # pylint: disable=import-error
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # pylint: disable=import-error,wrong-import-position
-from . import graph  # pylint: disable=wrong-import-position
+from . import graph  # pylint: disable=wrong-import-position,relative-beyond-top-level
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
 basicConfig(format=FORMATTER)
@@ -102,12 +102,35 @@ def save_all_candlestick(date_range):
         Candlestick.objects.bulk_create(insert_values, ignore_conflicts=True)
 
 
+def convert_hlc_to_log(data: pd.DataFrame, file_name: str):
+    """
+    価格データを対数変換して追加
+    Params:
+        data (dataframe):
+        file_name:
+    Returns:
+        dataframe
+    """
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+    columns = ["open", "high", "low", "close"]
+    new_data = data.copy()
+    for column in columns:
+        name = column + "_log"
+        if name in new_data.columns:
+            continue
+
+        new_data[name] = np.log(new_data[column])
+        new_data.to_csv(
+            "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
+        )
+
+    return new_data
+
+
 class BitcoinDataset:
     """
     BitcoinDataset
     """
-
-    MINUTES_OF_HOURS = 60 * 1  # TODO: 最適な時間を要調査
 
     def __init__(self, version):
         self.version = version
@@ -121,7 +144,7 @@ class BitcoinDataset:
         """
         logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
         self.data = csv
-        self.convert_hlc_to_log()
+        self.data = convert_hlc_to_log(self.data, self.version)
         self.add_column_next_extreme()
         self.add_columns_close_log()
         self.add_columns_time()
@@ -183,22 +206,6 @@ class BitcoinDataset:
                 continue
 
             self.data[name] = self.data["close_log"].diff(periods=i)
-            self.data.to_csv(
-                "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
-            )
-
-    def convert_hlc_to_log(self):
-        """
-        価格データを対数変換して追加
-        """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        columns = ["open", "high", "low", "close"]
-        for column in columns:
-            name = column + "_log"
-            if name in self.data.columns:
-                continue
-
-            self.data[name] = np.log(self.data[column])
             self.data.to_csv(
                 "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
             )
