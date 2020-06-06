@@ -39,9 +39,8 @@ def dataset(request, version):
     csv = pd.read_csv(
         "bitbank/static/bitbank/datasets/candlestick.csv"
     )  # TODO: Check error
-    _b = ds.BitcoinDataset(version)
-    _b.set_dataset(csv)
-    _b.plot()
+    data = ds.set_dataset(csv, version)
+    ds.plot(data, version)
     return redirect("/static/bitbank/graphs/" + version + "_dataset.png")
 
 

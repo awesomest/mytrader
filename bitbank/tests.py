@@ -4,10 +4,10 @@ import pickle
 from django.test import TestCase
 import pandas as pd  # pylint: disable=import-error
 from sklearn.linear_model import LinearRegression  # pylint: disable=import-error
-from .views import dataset
-from .views import bitcoin
-from .views import simulator
-from .models import Candlestick
+from .views import dataset  # pylint: disable=relative-beyond-top-level
+from .views import bitcoin  # pylint: disable=relative-beyond-top-level
+from .views import simulator  # pylint: disable=relative-beyond-top-level
+from .models import Candlestick  # pylint: disable=relative-beyond-top-level
 
 
 def create_oldest_candlestick():
@@ -34,8 +34,8 @@ def create_latest_candlestick():
     )
 
 
-class CandlestickModelTests(TestCase):
-    """CandlestickModelTests"""
+class CandlestickTests(TestCase):
+    """CandlestickTests"""
 
     def test_select_oldest_date(self):
         """test_select_oldest_date"""
@@ -101,15 +101,22 @@ class CandlestickModelTests(TestCase):
         )  # TODO: Why not any exception are happen
         self.assertEqual(True, True)
 
+
+class DatasetTests(TestCase):
+    """DatasetTests"""
+
     def test_create_dataset(self):
         """test_create_dataset"""
         file_name = "test"
         csv = pd.read_csv("bitbank/static/bitbank/datasets/candlestick.csv")
         csv = csv[:20000]
-        _b = dataset.BitcoinDataset(file_name)
-        _b.set_dataset(csv)
-        _b.plot()
-        self.assertTrue(isinstance(_b.data, pd.core.frame.DataFrame))
+        data = dataset.set_dataset(csv, file_name)
+        dataset.plot(data, file_name)
+        self.assertTrue(isinstance(data, pd.core.frame.DataFrame))
+
+
+class TrainingTests(TestCase):
+    """TrainingTests"""
 
     def test_create_model(self):
         """test_create_model"""
@@ -133,6 +140,10 @@ class CandlestickModelTests(TestCase):
         bitcoin.plot(csv, model, file_name)
 
         self.assertTrue(isinstance(model, LinearRegression))
+
+
+class SimulatorTests(TestCase):
+    """SimulatorTests"""
 
     def test_simulator(self):
         """test_simulator"""

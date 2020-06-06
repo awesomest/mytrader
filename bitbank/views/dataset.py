@@ -11,7 +11,7 @@ import matplotlib  # pylint: disable=import-error
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # pylint: disable=import-error,wrong-import-position
-from . import graph  # pylint: disable=wrong-import-position
+from . import graph  # pylint: disable=wrong-import-position,relative-beyond-top-level
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
 basicConfig(format=FORMATTER)
@@ -102,150 +102,190 @@ def save_all_candlestick(date_range):
         Candlestick.objects.bulk_create(insert_values, ignore_conflicts=True)
 
 
-class BitcoinDataset:
+def convert_hlc_to_log(data: pd.DataFrame, file_name: str):
     """
-    BitcoinDataset
+    価格データを対数変換して追加
+    Params:
+        data (dataframe):
+        file_name:
+    Returns:
+        dataframe
+    """
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+    columns = ["open", "high", "low", "close"]
+    new_data = data.copy()
+    for column in columns:
+        name = column + "_log"
+        if name in new_data.columns:
+            continue
+
+        new_data[name] = np.log(new_data[column])
+        new_data.to_csv(
+            "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
+        )
+
+    return new_data
+
+
+def add_column_next_extreme(data: pd.DataFrame, file_name: str):
+    """
+    期間n分の極大値・極小値
+    Params:
+        data (dataframe):
+        file_name:
+    Returns:
+        dataframe
+    """
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+    column_name = "next_extreme_log"
+    if column_name in data.columns:
+        return data
+
+    new_data = data.copy()
+    _y = new_data["close_log"].values
+    max_ids = signal.argrelmax(_y, order=1)
+    min_ids = signal.argrelmin(_y, order=1)
+    max_min_ids = np.concatenate([max_ids[0], min_ids[0]])
+    max_min_ids = np.sort(max_min_ids)
+    next_idx = 0
+    for i, row in new_data.iterrows():
+        if i % 10000 == 0:
+            logger.info("  index: {:.2%}".format(i / len(new_data)))
+
+        if next_idx >= len(max_min_ids):
+            break
+
+        _ni = max_min_ids[next_idx]
+        if i >= _ni:
+            next_idx += 1
+        # TODO: Change open_log to close_log
+        new_data.at[i, column_name] = new_data.at[_ni, "close_log"] - row["open_log"]
+
+    new_data.to_csv(
+        "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
+    )
+
+    return new_data
+
+
+def add_columns_close_log(data: pd.DataFrame, file_name: str):
+    """
+    指定した時間前のclose_logの差を追加
+    Params:
+        data (dataframe):
+        file_name:
+    Returns:
+        dataframe
+    """
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+    minute_list = [
+        1,
+        2,
+        5,
+        10,
+        15,
+        30,
+        60,
+        120,
+        240,
+        480,
+        720,
+        1440,
+        2880,
+        10080,
+    ]
+    new_data = data.copy()
+    for i in minute_list:
+        name = "close_log-" + str(i)
+        if name in new_data.columns:
+            continue
+
+        new_data[name] = new_data["close_log"].diff(periods=i)
+        new_data.to_csv(
+            "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
+        )
+
+    return new_data
+
+
+def add_columns_time(data: pd.DataFrame, file_name: str):
+    """
+    現在日時に関する列を追加
+    Params:
+        data (dataframe):
+        file_name:
+    Returns:
+        dataframe
+    """
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+    if "second" in data.columns:
+        return data
+
+    new_data = data.copy()
+    timestamp = pd.Series([dt.datetime.fromtimestamp(i) for i in new_data["unixtime"]])
+    new_data["day"] = timestamp.dt.day
+    new_data["weekday"] = timestamp.dt.dayofweek
+    new_data["second"] = (timestamp.dt.hour * 60 + timestamp.dt.minute) * 60
+    new_data.to_csv(
+        "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
+    )
+
+    return new_data
+
+
+def remove_missing_rows(data: pd.DataFrame, file_name: str):
+    """
+    欠損値を除外する
+    Params:
+        data (dataframe):
+        file_name:
+    Returns:
+        dataframe
+    """
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+    new_data = data.copy()
+    new_data.dropna(inplace=True)
+    new_data.to_csv(
+        "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
+    )
+    return new_data
+
+
+def set_dataset(data: pd.DataFrame, file_name: str):
+    """
+    データセットを作成
+    Params:
+        data (dataframe): originalデータ
+        file_name:
+    Returns:
+        dataframe
+    """
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+    new_data = data.copy()
+    new_data = convert_hlc_to_log(new_data, file_name)
+    new_data = add_column_next_extreme(new_data, file_name)
+    new_data = add_columns_close_log(new_data, file_name)
+    new_data = add_columns_time(new_data, file_name)
+    new_data = remove_missing_rows(new_data, file_name)
+    logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
+    return new_data
+
+
+def plot(data: pd.DataFrame, file_name: str):
+    """
+    Params:
+        data (dataframe):
+        file_name:
+    Returns:
+        dataframe
     """
 
-    MINUTES_OF_HOURS = 60 * 1  # TODO: 最適な時間を要調査
+    _, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
+    graph.plot_close(data, ax1)
+    graph.plot_label(data, ax1)
 
-    def __init__(self, version):
-        self.version = version
-        self.data = None
+    data2 = data[-500:]
+    graph.plot_close(data2, ax2)
+    graph.plot_label(data2, ax2)
 
-    def set_dataset(self, csv):
-        """
-        データセットを作成
-        Params:
-            csv (dataframe): originalデータ
-        """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        self.data = csv
-        self.convert_hlc_to_log()
-        self.add_column_next_extreme()
-        self.add_columns_close_log()
-        self.add_columns_time()
-        self.remove_missing_rows()
-        self.data.to_csv(
-            "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
-        )
-        logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
-
-    def add_columns_time(self):
-        """
-        現在日時に関する列を追加
-        """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        if "second" in self.data.columns:
-            return
-
-        timestamp = pd.Series(
-            [dt.datetime.fromtimestamp(i) for i in self.data["unixtime"]]
-        )
-        self.data["day"] = timestamp.dt.day
-        self.data["weekday"] = timestamp.dt.dayofweek
-        self.data["second"] = (timestamp.dt.hour * 60 + timestamp.dt.minute) * 60
-        self.data.to_csv(
-            "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
-        )
-
-    def remove_missing_rows(self):
-        """
-        欠損値を除外する
-        """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        self.data.dropna(inplace=True)
-
-    def add_columns_close_log(self):
-        """
-        指定した時間前のclose_logの差を追加
-        """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        minute_list = [
-            1,
-            2,
-            5,
-            10,
-            15,
-            30,
-            60,
-            120,
-            240,
-            480,
-            720,
-            1440,
-            2880,
-            10080,
-        ]
-        for i in minute_list:
-            name = "close_log-" + str(i)
-            if name in self.data.columns:
-                continue
-
-            self.data[name] = self.data["close_log"].diff(periods=i)
-            self.data.to_csv(
-                "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
-            )
-
-    def convert_hlc_to_log(self):
-        """
-        価格データを対数変換して追加
-        """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        columns = ["open", "high", "low", "close"]
-        for column in columns:
-            name = column + "_log"
-            if name in self.data.columns:
-                continue
-
-            self.data[name] = np.log(self.data[column])
-            self.data.to_csv(
-                "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
-            )
-
-    def add_column_next_extreme(self):
-        """
-        期間n分の極大値・極小値
-        """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        column_name = "next_extreme_log"
-        if column_name in self.data.columns:
-            return
-
-        _y = self.data["close_log"].values
-        max_ids = signal.argrelmax(_y, order=1)
-        min_ids = signal.argrelmin(_y, order=1)
-        max_min_ids = np.concatenate([max_ids[0], min_ids[0]])
-        max_min_ids = np.sort(max_min_ids)
-        next_idx = 0
-        for i, row in self.data.iterrows():
-            if i % 10000 == 0:
-                logger.info("  index: {:.2%}".format(i / len(self.data)))
-
-            if next_idx >= len(max_min_ids):
-                break
-
-            _ni = max_min_ids[next_idx]
-            if i >= _ni:
-                next_idx += 1
-            # TODO: Change open_log to close_log
-            self.data.at[i, column_name] = (
-                self.data.at[_ni, "close_log"] - row["open_log"]
-            )
-
-        self.data.to_csv(
-            "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
-        )
-
-    def plot(self):
-        """plot"""
-
-        _, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
-        graph.plot_close(self.data, ax1)
-        graph.plot_label(self.data, ax1)
-
-        data2 = self.data[-500:]
-        graph.plot_close(data2, ax2)
-        graph.plot_label(data2, ax2)
-
-        plt.savefig("bitbank/static/bitbank/graphs/" + self.version + "_dataset.png")
+    plt.savefig("bitbank/static/bitbank/graphs/" + file_name + "_dataset.png")
