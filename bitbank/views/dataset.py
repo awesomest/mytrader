@@ -233,6 +233,24 @@ def add_columns_time(data: pd.DataFrame, file_name: str):
     return new_data
 
 
+def remove_missing_rows(data: pd.DataFrame, file_name: str):
+    """
+    欠損値を除外する
+    Params:
+        data (dataframe):
+        file_name:
+    Returns:
+        dataframe
+    """
+    logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+    new_data = data.copy()
+    new_data.dropna(inplace=True)
+    new_data.to_csv(
+        "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
+    )
+    return new_data
+
+
 class BitcoinDataset:
     """
     BitcoinDataset
@@ -254,18 +272,8 @@ class BitcoinDataset:
         self.data = add_column_next_extreme(self.data, self.version)
         self.data = add_columns_close_log(self.data, self.version)
         self.data = add_columns_time(self.data, self.version)
-        self.remove_missing_rows()
-        self.data.to_csv(
-            "bitbank/static/bitbank/datasets/" + self.version + ".csv", index=False,
-        )
+        self.data = remove_missing_rows(self.data, self.version)
         logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
-
-    def remove_missing_rows(self):
-        """
-        欠損値を除外する
-        """
-        logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-        self.data.dropna(inplace=True)
 
     def plot(self):
         """plot"""
