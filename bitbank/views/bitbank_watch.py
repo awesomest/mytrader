@@ -23,7 +23,7 @@ def connect():
     Connect to server
     """
     logger.info("connected to server")
-    sio.emit("join-room", "transactions_btc_jpy")
+    sio.emit("join-room", "ticker_btc_jpy")
 
 
 @sio.event

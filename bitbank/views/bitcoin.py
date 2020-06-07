@@ -1,13 +1,17 @@
 """bitcoin.py"""
 import inspect
+import pickle
 from logging import getLogger, basicConfig, DEBUG
 from sklearn.linear_model import LinearRegression  # pylint: disable=import-error
 from sklearn.model_selection import train_test_split  # pylint: disable=import-error
+from bitbank.models import Prediction
+import numpy as np  # pylint: disable=import-error
 import matplotlib  # pylint: disable=import-error
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # pylint: disable=import-error,wrong-import-position
 from . import graph  # pylint: disable=wrong-import-position,relative-beyond-top-level
+from . import dataset  # pylint: disable=wrong-import-position,relative-beyond-top-level
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
 basicConfig(format=FORMATTER)
@@ -40,15 +44,19 @@ TRAIN_COLUMNS = [
 ]
 
 
-def predict(data, model):
+def predict_realtime():
     """
-    Params:
-        data: (dataframe): input data as 1 row
-        model (model): model for predict
-    Return:
-        predicted_value: (float): next extreme value as log
+    Returns:
+        float: btc price
     """
-    return model.predict(data[TRAIN_COLUMNS])
+    data = dataset.create_realtime_input_dataset()
+    pickle_file = "bitbank/static/bitbank/models/production.pickle"
+    with open(pickle_file, mode="rb") as file:
+        model = pickle.load(file)
+    predict_log = model.predict(data[TRAIN_COLUMNS])[0]
+    predict_price = np.exp(predict_log)
+    Prediction(unixtime=data.iloc[-1]["unixtime"], price=predict_price).save()
+    return predict_price
 
 
 def create_model(data_train, label_train):

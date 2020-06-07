@@ -182,3 +182,8 @@ class PredictTests(TestCase):
                 break
 
         self.assertTrue(is_success)
+
+    def test_predict_realtime(self):
+        """test_predict_realtime"""
+        predict = bitcoin.predict_realtime()
+        self.assertTrue(isinstance(predict, float))
