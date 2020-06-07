@@ -7,7 +7,10 @@ from sklearn.linear_model import LinearRegression  # pylint: disable=import-erro
 from .views import dataset  # pylint: disable=relative-beyond-top-level
 from .views import bitcoin  # pylint: disable=relative-beyond-top-level
 from .views import simulator  # pylint: disable=relative-beyond-top-level
-from .models import Candlestick  # pylint: disable=relative-beyond-top-level
+from .models import (  # pylint: disable=relative-beyond-top-level
+    Candlestick,
+    AssetHistory,
+)
 
 
 def create_oldest_candlestick():
@@ -31,6 +34,13 @@ def create_latest_candlestick():
         low=111332,
         close=111332,
         volume=0.0058,
+    )
+
+
+def create_asset_history():
+    """create_asset_history"""
+    return AssetHistory.objects.create(
+        unixtime=1487042760, yen=200000, btc=0, asset=200000,
     )
 
 
@@ -183,7 +193,12 @@ class PredictTests(TestCase):
 
         self.assertTrue(is_success)
 
-    def test_predict_realtime(self):
-        """test_predict_realtime"""
-        predict = bitcoin.predict_realtime()
-        self.assertTrue(isinstance(predict, float))
+
+class UserTests(TestCase):
+    """UserTests"""
+
+    def test_transact_realtime(self):
+        """test_transact_realtime"""
+        create_asset_history()
+        bitcoin.transact_realtime()
+        self.assertEqual(AssetHistory.objects.all().count(), 1)

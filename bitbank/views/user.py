@@ -1,5 +1,6 @@
 """user.py"""
 
+from bitbank.models import AssetHistory
 from . import bitbank_app  # pylint: disable=relative-beyond-top-level
 
 
@@ -58,6 +59,17 @@ class BitcoinUser:
             price (int): current price of BTC
         """
         self.total = self.yen + self.btc * price
+
+    def load_asset(self):
+        """
+        Load user's asset
+        Params:
+            price (int): current price of BTC
+        """
+        asset = AssetHistory.objects.order_by("-unixtime")[0]
+        self.yen = asset.yen
+        self.btc = asset.btc
+        self.total = asset.asset
 
     def decide_action(self, row):
         """
