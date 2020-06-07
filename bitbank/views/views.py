@@ -3,12 +3,12 @@ import datetime as dt
 import pickle
 from logging import getLogger, basicConfig, DEBUG
 from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 import pandas as pd  # pylint: disable=import-error
-from . import dataset as ds
-from . import bitcoin
-from . import simulator
+from . import dataset as ds  # pylint: disable=relative-beyond-top-level
+from . import bitcoin  # pylint: disable=relative-beyond-top-level
+from . import simulator  # pylint: disable=relative-beyond-top-level
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
 basicConfig(format=FORMATTER)
@@ -83,6 +83,11 @@ def simulate(request, version):
 
     simulator.plot(data, model, y_assets, version)
     return redirect("/static/bitbank/graphs/" + version + "_predict.png")
+
+
+def predict(request):
+    """predict"""
+    return HttpResponse(bitcoin.predict_realtime())
 
 
 def results(request, results_str):

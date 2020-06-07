@@ -1,17 +1,17 @@
 """bitcoin.py"""
 import inspect
+import pickle
 from logging import getLogger, basicConfig, DEBUG
-from datetime import datetime as dt
-from bitbank.models import Candlestick
-import pandas as pd  # pylint: disable=import-error
-import numpy as np  # pylint: disable=import-error
 from sklearn.linear_model import LinearRegression  # pylint: disable=import-error
 from sklearn.model_selection import train_test_split  # pylint: disable=import-error
+from bitbank.models import Prediction
+import numpy as np  # pylint: disable=import-error
 import matplotlib  # pylint: disable=import-error
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # pylint: disable=import-error,wrong-import-position
-from . import graph  # pylint: disable=wrong-import-position
+from . import graph  # pylint: disable=wrong-import-position,relative-beyond-top-level
+from . import dataset  # pylint: disable=wrong-import-position,relative-beyond-top-level
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
 basicConfig(format=FORMATTER)
@@ -44,64 +44,19 @@ TRAIN_COLUMNS = [
 ]
 
 
-def build_input_for_model(candlestick):
+def predict_realtime():
     """
-    Params:
-        candlestick: (np.array): time of the target row
-            includes: ["unixtime", "open", "high", "low", "close", "volume"]
-    Return:
-        row: (dataframe): input for model
+    Returns:
+        float: btc price
     """
-
-    data = pd.DataFrame([[]])
-
-    timestamp = dt.fromtimestamp(candlestick[0])
-    data["day"] = timestamp.day
-    data["weekday"] = timestamp.weekday()
-    data["second"] = (timestamp.hour * 60 + timestamp.minute) * 60
-
-    data["open_log"] = np.log(candlestick[1])
-    data["high_log"] = np.log(candlestick[2])
-    data["low_log"] = np.log(candlestick[3])
-    data["close_log"] = np.log(candlestick[4])
-    data["volume"] = candlestick[5]
-
-    minutes_diffs = [
-        1,
-        2,
-        5,
-        10,
-        15,
-        30,
-        60,
-        120,
-        240,
-        480,
-        720,
-        1440,
-        2880,
-        10080,
-    ]
-
-    for i in minutes_diffs:
-        seconds_diff = i * 60
-        close = Candlestick.objects.get(
-            unixtime__lte=int(candlestick[0] - seconds_diff)
-        ).close
-        data["close_log-" + str(i)] = data["close_log"] - np.log(close)
-
-    return data
-
-
-def predict(data, model):
-    """
-    Params:
-        data: (dataframe): input data as 1 row
-        model (model): model for predict
-    Return:
-        predicted_value: (float): next extreme value as log
-    """
-    return model.predict(data[TRAIN_COLUMNS])
+    data = dataset.create_realtime_input_dataset()
+    pickle_file = "bitbank/static/bitbank/models/production.pickle"
+    with open(pickle_file, mode="rb") as file:
+        model = pickle.load(file)
+    predict_log = model.predict(data[TRAIN_COLUMNS])[0]
+    predict_price = np.exp(predict_log)
+    Prediction(unixtime=data.iloc[-1]["unixtime"], price=predict_price).save()
+    return predict_price
 
 
 def create_model(data_train, label_train):

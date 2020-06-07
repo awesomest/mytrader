@@ -12,7 +12,6 @@ import matplotlib  # pylint: disable=import-error
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # pylint: disable=import-error,wrong-import-position
 from . import graph  # pylint: disable=wrong-import-position,relative-beyond-top-level
-from . import bitcoin  # pylint: disable=wrong-import-position,relative-beyond-top-level
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
 basicConfig(format=FORMATTER)
@@ -282,7 +281,7 @@ def create_realtime_input_dataset():
     input_dataset = add_columns_time(input_dataset)
     input_dataset = remove_missing_rows(input_dataset, "test01")
     logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
-    return input_dataset[bitcoin.TRAIN_COLUMNS]
+    return input_dataset.tail(1)
 
 
 def create_training_dataset(data: pd.DataFrame, file_name: str):

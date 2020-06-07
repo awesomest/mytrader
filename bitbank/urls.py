@@ -1,7 +1,7 @@
 """urls.py"""
 from django.urls import path
 
-from .views import views
+from .views import views  # pylint: disable=relative-beyond-top-level
 
 app_name = "bitbank"  # pylint: disable=invalid-name
 urlpatterns = [
@@ -10,5 +10,6 @@ urlpatterns = [
     path("dataset/<str:version>", views.dataset, name="dataset"),
     path("train/<str:version>", views.train, name="train"),
     path("simulate/<str:version>", views.simulate, name="simulate"),
+    path("predict/", views.predict, name="predict"),
     path("results/<str:results_str>", views.results, name="results"),
 ]

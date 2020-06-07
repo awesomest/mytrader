@@ -15,3 +15,27 @@ class Candlestick(models.Model):
     def __str__(self):
         # pylint: disable=invalid-str-returned
         return str(self.unixtime)
+
+
+class Prediction(models.Model):
+    """Prediction"""
+
+    unixtime = models.PositiveIntegerField(unique=True)
+    price = models.FloatField()  # btc price with yen
+
+    def __str__(self):
+        # pylint: disable=invalid-str-returned
+        return str(self.unixtime)
+
+
+class Trade(models.Model):
+    """Trade"""
+
+    unixtime = models.PositiveIntegerField(unique=True)
+    side = models.CharField(max_length=8)  # "buy" or "sell"
+    price = models.FloatField()  # btc price with yen
+    amount = models.FloatField()  # btc amount
+
+    def __str__(self):
+        # pylint: disable=invalid-str-returned
+        return str(self.unixtime)
