@@ -8,14 +8,19 @@ class BitcoinUser:
     BitcoinUser
     """
 
-    def __init__(self, yen):
+    UPWARD_THRESHOLD = 0.00125  # TODO: Decide the best. this is 20th percentile now.
+    DOWNWARD_THRESHOLD = -0.00119  # TODO: Decide the best. this is 80th percentile now.
+
+    def __init__(self, yen=0, btc=0):
         """
         Params:
             yen (int): initial yen the user have
+            btc (int): initial btc the user have
         """
-        self.yen = yen  # 現在の円価格
-        self.btc = 0  # 現在のBitCoin価格
-        self.total = yen  # 現在の総資産額
+        self.yen = yen  # 現在所持している円の量
+        self.btc = btc  # 現在所持しているBTCの量
+        self.total = 0  # 現在の総資産額
+        self.update_total_assets(btc)
         self.target = 0  # 次の予定売買価格
         self.traded_btc = 0  # 前回の取引価格
         """
@@ -53,3 +58,32 @@ class BitcoinUser:
             price (int): current price of BTC
         """
         self.total = self.yen + self.btc * price
+
+    def decide_action(self, row):
+        """
+        Params:
+            row: current data
+        Returns:
+            int: -1 for sell, 1 for buy, 0 otherwise
+        """
+        if row["predict"] > self.UPWARD_THRESHOLD:
+            if self.yen > 0:
+                return 1
+        if row["predict"] < self.DOWNWARD_THRESHOLD:
+            if self.btc > 0:
+                return -1
+
+        return 0
+
+    def transact(self, row):
+        """
+        Params:
+            row: current data
+        """
+        action = self.decide_action(row)
+        if action == 1:
+            amount = self.yen / row["close"]
+            self.buy_btc(row["close"], amount)
+        elif action == -1:
+            amount = self.btc
+            self.sell_btc(row["close"], amount)

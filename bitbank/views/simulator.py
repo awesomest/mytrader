@@ -20,9 +20,6 @@ class BitcoinSimulator:
     BitcoinSimulator
     """
 
-    UPWARD_THRESHOLD = 0.00125  # TODO: Decide the best. this is 20th percentile now.
-    DOWNWARD_THRESHOLD = -0.00119  # TODO: Decide the best. this is 80th percentile now.
-
     def __init__(self, yen):
         """
         Params:
@@ -47,33 +44,11 @@ class BitcoinSimulator:
             if index % 10000 == 0:
                 # TODO: fix ratio. good to reset index?
                 logger.info("  index: {:.2%}".format(index / len(data_simulation)))
-            action = self.decide_action(row)
-            if action == 1:
-                amount = self.user.yen / row["close"]
-                self.user.buy_btc(row["close"], amount)
-            elif action == -1:
-                amount = self.user.btc
-                self.user.sell_btc(row["close"], amount)
 
+            self.user.transact(row)
             assets.append(self.user.total)
 
         return assets
-
-    def decide_action(self, row):
-        """
-        Params:
-            row: current data
-        Returns:
-            int: -1 for sell, 1 for buy, 0 otherwise
-        """
-        if row["predict"] > self.UPWARD_THRESHOLD:
-            if self.user.yen > 0:
-                return 1
-        if row["predict"] < self.DOWNWARD_THRESHOLD:
-            if self.user.btc > 0:
-                return -1
-
-        return 0
 
 
 def plot(data, model, y_assets, file_name):
