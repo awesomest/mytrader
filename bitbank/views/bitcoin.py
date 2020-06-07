@@ -4,7 +4,7 @@ import pickle
 from logging import getLogger, basicConfig, DEBUG
 from sklearn.linear_model import LinearRegression  # pylint: disable=import-error
 from sklearn.model_selection import train_test_split  # pylint: disable=import-error
-from bitbank.models import Prediction
+from bitbank.models import Prediction, AssetHistory
 import numpy as np  # pylint: disable=import-error
 import matplotlib  # pylint: disable=import-error
 
@@ -12,6 +12,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # pylint: disable=import-error,wrong-import-position
 from . import graph  # pylint: disable=wrong-import-position,relative-beyond-top-level
 from . import dataset  # pylint: disable=wrong-import-position,relative-beyond-top-level
+from . import user  # pylint: disable=wrong-import-position,relative-beyond-top-level
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
 basicConfig(format=FORMATTER)
@@ -44,19 +45,27 @@ TRAIN_COLUMNS = [
 ]
 
 
-def predict_realtime():
+def transact_realtime():
     """
-    Returns:
-        float: btc price
+    1. 現在の所持金を取得
+    2. 予測
+    3. 取引実行
     """
-    data = dataset.create_realtime_input_dataset()
+    u = user.BitcoinUser()
+    u.load_asset()
+    old_asset = u.total
     pickle_file = "bitbank/static/bitbank/models/production.pickle"
     with open(pickle_file, mode="rb") as file:
         model = pickle.load(file)
-    predict_log = model.predict(data[TRAIN_COLUMNS])[0]
-    predict_price = np.exp(predict_log)
+    data = dataset.create_realtime_input_dataset()
+    data["predict"] = model.predict(data[TRAIN_COLUMNS])[0]
+    predict_price = np.exp(data["close_log"] + data["predict"])
     Prediction(unixtime=data.iloc[-1]["unixtime"], price=predict_price).save()
-    return predict_price
+    u.transact(data.iloc[-1])
+    if u.total != old_asset:
+        AssetHistory(
+            unixtime=data.iloc[-1]["unixtime"], yen=u.yen, btc=u.btc, asset=u.total
+        ).save()
 
 
 def create_model(data_train, label_train):

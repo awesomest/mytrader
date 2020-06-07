@@ -10,6 +10,6 @@ urlpatterns = [
     path("dataset/<str:version>", views.dataset, name="dataset"),
     path("train/<str:version>", views.train, name="train"),
     path("simulate/<str:version>", views.simulate, name="simulate"),
-    path("predict/", views.predict, name="predict"),
+    path("realtime_transact/", views.realtime_transact, name="realtime_transact"),
     path("results/<str:results_str>", views.results, name="results"),
 ]

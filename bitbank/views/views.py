@@ -85,9 +85,10 @@ def simulate(request, version):
     return redirect("/static/bitbank/graphs/" + version + "_predict.png")
 
 
-def predict(request):
-    """predict"""
-    return HttpResponse(bitcoin.predict_realtime())
+def realtime_transact(request):
+    """realtime_transact"""
+    bitcoin.transact_realtime()
+    return HttpResponse()
 
 
 def results(request, results_str):
