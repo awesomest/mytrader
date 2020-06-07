@@ -22,6 +22,7 @@ class Prediction(models.Model):
 
     unixtime = models.PositiveIntegerField(unique=True)
     price = models.FloatField()  # btc price with yen
+    # TODO: Add currency name to support others
 
     def __str__(self):
         # pylint: disable=invalid-str-returned
@@ -33,8 +34,21 @@ class Trade(models.Model):
 
     unixtime = models.PositiveIntegerField(unique=True)
     side = models.CharField(max_length=8)  # "buy" or "sell"
-    price = models.FloatField()  # btc price with yen
+    price = models.FloatField()  # price of btc with yen
     amount = models.FloatField()  # btc amount
+
+    def __str__(self):
+        # pylint: disable=invalid-str-returned
+        return str(self.unixtime)
+
+
+class AssetHistory(models.Model):
+    """AssetHistory"""
+
+    unixtime = models.PositiveIntegerField(unique=True)
+    yen = models.FloatField()  # price of yen
+    btc = models.FloatField()  # price of btc with yen
+    asset = models.FloatField()  # btc amount
 
     def __str__(self):
         # pylint: disable=invalid-str-returned
