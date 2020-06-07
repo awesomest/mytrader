@@ -2,12 +2,12 @@
 import inspect
 from logging import getLogger, basicConfig, DEBUG
 import matplotlib  # pylint: disable=import-error
+import matplotlib.pyplot as plt  # pylint: disable=import-error,wrong-import-position
+from . import graph  # pylint: disable=relative-beyond-top-level
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # pylint: disable=import-error,wrong-import-position
-from . import graph  # pylint: disable=wrong-import-position
-from . import bitbank_app  # pylint: disable=wrong-import-position
-from . import bitcoin  # pylint: disable=wrong-import-position
+from . import bitcoin  # pylint: disable=wrong-import-position,relative-beyond-top-level
+from . import user  # pylint: disable=wrong-import-position,relative-beyond-top-level
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
 basicConfig(format=FORMATTER)
@@ -28,7 +28,7 @@ class BitcoinSimulator:
         Params:
             yen (int): initial yen the user have
         """
-        self.user = BitcoinUser(yen)
+        self.user = user.BitcoinUser(yen)
 
     def simulate(self, data, model):
         """
@@ -74,58 +74,6 @@ class BitcoinSimulator:
                 return -1
 
         return 0
-
-
-class BitcoinUser:
-    """
-    BitcoinUser
-    """
-
-    def __init__(self, yen):
-        """
-        Params:
-            yen (int): initial yen the user have
-        """
-        self.yen = yen  # 現在の円価格
-        self.btc = 0  # 現在のBitCoin価格
-        self.total = yen  # 現在の総資産額
-        self.target = 0  # 次の予定売買価格
-        self.traded_btc = 0  # 前回の取引価格
-        """
-        TODO:
-        diff_target = |target - btc|
-        diff_current = |target - traded_btc|
-
-        action_chance = diff_current / diff_target # 理想値との差のうち、どの程度近づいているか
-        """
-
-    def buy_btc(self, price, amount):
-        """
-        Params:
-            price (int): current price of BTC
-            amount (float): amount of BTC to buy
-        """
-        self.yen -= price * amount
-        self.btc += amount * (1 - bitbank_app.TRADING_FEE)
-        self.update_total_assets(price)
-
-    def sell_btc(self, price, amount):
-        """
-        Params:
-            price (int): current price of BTC
-            amount (float): amount of BTC to sell
-        """
-        self.btc -= amount
-        self.yen += price * amount * (1 - bitbank_app.TRADING_FEE)
-        self.update_total_assets(price)
-
-    def update_total_assets(self, price):
-        """
-        Update user's total assets
-        Params:
-            price (int): current price of BTC
-        """
-        self.total = self.yen + self.btc * price
 
 
 def plot(data, model, y_assets, file_name):
