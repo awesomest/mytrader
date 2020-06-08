@@ -29,6 +29,12 @@ $ python manage.py migrate
 $ python manage.py runserver
 ```
 
+## Development
+```sh
+$ black [FILE_NAME]
+$ pylint --load-plugins pylint_django --rcfile=.pylintrc [FILE_NAME]
+```
+
 ## Documents
 * [Architechture](https://docs.google.com/presentation/d/1YMLNzz-PrKDV_IeKXlmBPZj72ZlB2rwqpRv3hZfhZWI/edit?usp=sharing)
 
