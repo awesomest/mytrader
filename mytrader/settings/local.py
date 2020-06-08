@@ -1,10 +1,10 @@
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "secret"
+SECRET_KEY = "ekfGJe-AxVXk*h-xoRc8i.QfYzvbx8CV.Fa4_7b3LrDuM4VmLx"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 # Running locally so connect to either a local MySQL instance or connect to
 # Cloud SQL via the proxy. To start the proxy via command line:

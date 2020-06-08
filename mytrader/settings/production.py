@@ -1,12 +1,12 @@
 import os
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "f$#o!u89k3pfye1d#!46&od(w9%ee087_z9p+v(aosi&_c5(e9"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["mytrader-279617.appspot.com"]
+ALLOWED_HOSTS = ["mytrader-279617.appspot.com", "mytrader-279617.df.r.appspot.com"]
 
 # Running on production App Engine, so connect to Google Cloud SQL using
 # the unix socket at /cloudsql/<your-cloudsql-connection string>
