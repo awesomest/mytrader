@@ -19,4 +19,5 @@ __pycache__/
 /setup.cfg
 
 sql/
-bitbank/static/
+bitbank/static/bitbank/datasets/
+bitbank/static/bitbank/graphs/

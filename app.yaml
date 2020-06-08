@@ -1,6 +1,11 @@
 # [START django_app]
 runtime: python37
 
+instance_class: F4
+
+includes:
+  - production.yaml
+
 handlers:
 # This configures Google App Engine to serve the files in the app's static
 # directory.
@@ -12,4 +17,5 @@ handlers:
 # the entire handlers section) when there are no static files defined.
 - url: /.*
   script: auto
+  secure: always
 # [END django_app]

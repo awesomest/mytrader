@@ -5,3 +5,5 @@ models/*
 !models/production.pickle
 static/
 database.prod.cnf
+cloud_sql_proxy
+production.yaml
