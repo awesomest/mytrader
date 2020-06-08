@@ -279,7 +279,7 @@ def create_realtime_input_dataset():
     input_dataset = convert_hlc_to_log(input_dataset)
     input_dataset = add_columns_close_log(input_dataset)
     input_dataset = add_columns_time(input_dataset)
-    input_dataset = remove_missing_rows(input_dataset, "test01")
+    input_dataset = remove_missing_rows(input_dataset)
     logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
     return input_dataset.tail(1)
 

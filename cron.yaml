@@ -1,0 +1,5 @@
+cron:
+- description: "transact in real time"
+  url: /bitbank/realtime_transact/
+  schedule: every 1 mins
+  timezone: Asia/Tokyo

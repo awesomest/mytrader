@@ -66,7 +66,7 @@ class BitcoinUser:
         Params:
             price (int): current price of BTC
         """
-        asset = AssetHistory.objects.order_by("-unixtime")[0]
+        asset = AssetHistory.objects.order_by("-unixtime")[0]  # TODO: error handling
         self.yen = asset.yen
         self.btc = asset.btc
         self.total = asset.asset
