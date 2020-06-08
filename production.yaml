@@ -1,5 +1,0 @@
-env_variables:
-  DB_HOST: "/cloudsql/mytrader-279617:asia-northeast1:mytrader"
-  DB_NAME: "mytrader"
-  DB_USER: "admin"
-  DB_PASSWORD: "4b*Y4kd3Z9cxs&gYeRQD"
