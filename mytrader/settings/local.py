@@ -1,3 +1,4 @@
+"""local.py"""
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "ekfGJe-AxVXk*h-xoRc8i.QfYzvbx8CV.Fa4_7b3LrDuM4VmLx"
 
@@ -13,15 +14,13 @@ ALLOWED_HOSTS = ["*"]
 #
 # See https://cloud.google.com/sql/docs/mysql-connect-proxy
 DATABASES = {
-  "default": {
-    "ENGINE": "django.db.backends.mysql",
-    "HOST": "127.0.0.1",
-    "PORT": "4306",
-    "NAME": "test",
-    "USER": "eraise",
-    "PASSWORD": "eraise",
-    "OPTIONS": {
-      "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-    },
-  }
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "HOST": "127.0.0.1",
+        "PORT": "4306",
+        "NAME": "test",
+        "USER": "eraise",
+        "PASSWORD": "eraise",
+        "OPTIONS": {"init_command": "SET sql_mode='STRICT_TRANS_TABLES'",},
+    }
 }
