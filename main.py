@@ -1,3 +1,4 @@
+"""main.py"""
 from mytrader.wsgi import application
 
 # App Engine by default looks for a main.py file at the root of the app
