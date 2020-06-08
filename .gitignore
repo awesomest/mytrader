@@ -1,9 +1,6 @@
 .idea/
 __pycache__/
 .ipynb_checkpoints/
-models/*
-!models/production.pickle
 static/
-database.prod.cnf
 cloud_sql_proxy
 production.yaml
