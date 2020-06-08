@@ -25,7 +25,7 @@ SECRET_KEY = "f$#o!u89k3pfye1d#!46&od(w9%ee087_z9p+v(aosi&_c5(e9"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["mytrader-279617.appspot.com"]
 
 
 # Application definition
@@ -74,15 +74,28 @@ WSGI_APPLICATION = "mytrader.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+# Install PyMySQL as mysqlclient/MySQLdb to use Django"s mysqlclient adapter
+# See https://docs.djangoproject.com/en/2.1/ref/databases/#mysql-db-api-drivers
+# for more information
+import pymysql  # noqa: 402
+pymysql.version_info = (1, 4, 6, "final", 0)  # change mysqlclient version
+pymysql.install_as_MySQLdb()
+
+# [START db_setup]
+DB_CONF = "./database.local.cnf"
+if os.getenv("GAE_APPLICATION", None):
+    DB_CONF = "./database.prod.cnf"
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "OPTIONS": {
-            "read_default_file": "./database.cnf",
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            "read_default_file": DB_CONF,
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO'",
         },
     }
 }
+# [END db_setup]
 
 
 # Password validation

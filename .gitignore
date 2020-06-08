@@ -4,3 +4,4 @@ __pycache__/
 models/*
 !models/production.pickle
 static/
+database.prod.cnf

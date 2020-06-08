@@ -1,0 +1,26 @@
+asgiref==3.2.7
+certifi==2020.4.5.2
+chardet==3.0.4
+cycler==0.10.0
+Django==3.0.7
+gunicorn==20.0.4
+idna==2.9
+joblib==0.15.1
+kiwisolver==1.2.0
+matplotlib==3.2.1
+mysqlclient==1.4.6
+numpy==1.18.5
+pandas==1.0.4
+PyMySQL==0.9.3
+pyparsing==2.4.7
+python-bitbankcc @ git+https://github.com/bitbankinc/python-bitbankcc.git@ecbca280a67b529603787bc33c56133bd98b7264
+python-dateutil==2.8.1
+pytz==2020.1
+requests==2.23.0
+scikit-learn==0.23.1
+scipy==1.4.1
+six==1.15.0
+sklearn==0.0
+sqlparse==0.3.1
+threadpoolctl==2.1.0
+urllib3==1.25.9
