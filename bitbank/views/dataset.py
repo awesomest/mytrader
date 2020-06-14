@@ -3,7 +3,6 @@ import inspect
 import datetime as dt
 from logging import getLogger, basicConfig, DEBUG
 from scipy import signal  # pylint: disable=import-error
-from bitbank.models import Candlestick
 import python_bitbankcc  # pylint: disable=import-error
 import pandas as pd  # pylint: disable=import-error
 import numpy as np  # pylint: disable=import-error
@@ -11,6 +10,7 @@ import matplotlib  # pylint: disable=import-error
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # pylint: disable=import-error,wrong-import-position
+from bitbank.models import Candlestick  # pylint: disable=wrong-import-position
 from . import graph  # pylint: disable=wrong-import-position,relative-beyond-top-level
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
@@ -22,7 +22,11 @@ logger.setLevel(DEBUG)
 def select_latest_date():
     """select_latest_date"""
     try:
-        latest_unixtime = Candlestick.objects.order_by("-unixtime")[0].unixtime
+        latest_unixtime = (
+            Candlestick.objects.order_by("-unixtime")
+            .values("unixtime")
+            .all()[:1][0]["unixtime"]
+        )
     except (Candlestick.DoesNotExist, IndexError):
         oldest_date = dt.date(2017, 2, 14)  # TODO: 適当に決めた日付なので要改善
         return oldest_date
@@ -32,6 +36,11 @@ def select_latest_date():
             latest_datetime.year, latest_datetime.month, latest_datetime.day
         )
         return latest_date
+
+
+def fetch_latest_candlestick_from_db():
+    """fetch_latest_candlestick_from_db"""
+    return Candlestick.objects.order_by("-unixtime").all()[:10081]
 
 
 def fetch_candlestick_from_bitbank(date_str: str):
@@ -263,13 +272,22 @@ def create_realtime_input_dataset():
         dataframe
     """
     logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+    # fetch candlesticks for predict from DB
+    latest_candlestick = fetch_latest_candlestick_from_db()
+
+    # predict with candlesticks
     candlestick_list = []
-    week_ago = dt.date.today() + dt.timedelta(-8)
-    tomorrow = dt.date.today() + dt.timedelta(1)
-    date_range = get_date_range(week_ago, tomorrow)
-    for date in date_range:
-        date_str = date.strftime("%Y%m%d")
-        candlestick_list.extend(fetch_candlestick_from_bitbank(date_str))
+    for candlestick in latest_candlestick:
+        candlestick_list.append(
+            [
+                candlestick.open,
+                candlestick.high,
+                candlestick.low,
+                candlestick.close,
+                candlestick.volume,
+                candlestick.unixtime,
+            ]
+        )
 
     input_dataset = pd.DataFrame(
         candlestick_list,
@@ -280,6 +298,7 @@ def create_realtime_input_dataset():
     input_dataset = add_columns_close_log(input_dataset)
     input_dataset = add_columns_time(input_dataset)
     input_dataset = remove_missing_rows(input_dataset)
+
     logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
     return input_dataset.tail(1)
 

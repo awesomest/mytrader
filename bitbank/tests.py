@@ -10,6 +10,7 @@ from .views import simulator  # pylint: disable=relative-beyond-top-level
 from .models import (  # pylint: disable=relative-beyond-top-level
     Candlestick,
     AssetHistory,
+    Prediction,
 )
 
 
@@ -57,7 +58,7 @@ class CandlestickTests(TestCase):
         create_oldest_candlestick()
         create_latest_candlestick()
         latest_date = dataset.select_latest_date()
-        self.assertEqual(latest_date, dt.date(2017, 6, 10))
+        self.assertEqual(latest_date, dt.date(2017, 6, 9))
 
     def test_fetch_candlestick_from_bitbank(self):
         """test_fetch_candlestick_from_bitbank"""
@@ -79,13 +80,21 @@ class CandlestickTests(TestCase):
         insert_values = dataset.convert_candlestick_to_inserting(candlestick_list)
         self.assertTrue(isinstance(insert_values[0], Candlestick))
 
-    def test_save_all_candlestick(self):
-        """test_save_all_candlestick"""
+    def test_save_1_day(self):
+        """test_save_1_day"""
         days_ago_2 = dt.date.today() + dt.timedelta(-2)
         yesterday = dt.date.today() + dt.timedelta(-1)
         date_range = dataset.get_date_range(days_ago_2, yesterday)
         dataset.save_all_candlestick(date_range)
         self.assertEqual(Candlestick.objects.all().count(), 1440)
+
+    def test_save_last_7_days(self):
+        """test_save_last_7_days"""
+        week_ago = dt.date.today() + dt.timedelta(-7)
+        tomorrow = dt.date.today() + dt.timedelta(1)
+        date_range = dataset.get_date_range(week_ago, tomorrow)
+        dataset.save_all_candlestick(date_range)
+        self.assertGreaterEqual(Candlestick.objects.all().count(), 10080)
 
     def test_save_all_candlestick_last_minute(self):
         """test_save_all_candlestick_last_minute"""
@@ -96,7 +105,11 @@ class CandlestickTests(TestCase):
         dataset.save_all_candlestick(date_range)
 
         now_ts = dt.datetime.now().timestamp()
-        latest_unixtime = Candlestick.objects.order_by("-unixtime")[0].unixtime
+        latest_unixtime = (
+            Candlestick.objects.order_by("-unixtime")
+            .values("unixtime")
+            .all()[:1][0]["unixtime"]
+        )
         self.assertTrue(now_ts - 60 < latest_unixtime <= now_ts)
 
     def test_save_all_candlestick_duplicated(self):
@@ -181,24 +194,14 @@ class SimulatorTests(TestCase):
 class PredictTests(TestCase):
     """PredictTests"""
 
-    def test_create_input_for_predict(self):
-        """test_create_input_for_predict"""
-        data = dataset.create_realtime_input_dataset()
-
-        is_success = True
-        for column in bitcoin.TRAIN_COLUMNS:
-            if column not in data.columns:
-                is_success = False
-                break
-
-        self.assertTrue(is_success)
-
-
-class UserTests(TestCase):
-    """UserTests"""
-
     def test_transact_realtime(self):
         """test_transact_realtime"""
+        week_ago = dt.date.today() + dt.timedelta(-7)
+        tomorrow = dt.date.today() + dt.timedelta(1)
+        date_range = dataset.get_date_range(week_ago, tomorrow)
+        dataset.save_all_candlestick(date_range)
+
         create_asset_history()
+
         bitcoin.transact_realtime()
-        self.assertEqual(AssetHistory.objects.all().count(), 1)
+        self.assertEqual(Prediction.objects.all().count(), 1)
