@@ -38,6 +38,11 @@ def select_latest_date():
         return latest_date
 
 
+def fetch_latest_candlestick_from_db():
+    """fetch_latest_candlestick_from_db"""
+    return Candlestick.objects.order_by("-unixtime").all()[:10081]
+
+
 def fetch_candlestick_from_bitbank(date_str: str):
     """
     Params:
@@ -267,13 +272,22 @@ def create_realtime_input_dataset():
         dataframe
     """
     logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
+    # fetch candlesticks for predict from DB
+    latest_candlestick = fetch_latest_candlestick_from_db()
+
+    # predict with candlesticks
     candlestick_list = []
-    week_ago = dt.date.today() + dt.timedelta(-8)
-    tomorrow = dt.date.today() + dt.timedelta(1)
-    date_range = get_date_range(week_ago, tomorrow)
-    for date in date_range:
-        date_str = date.strftime("%Y%m%d")
-        candlestick_list.extend(fetch_candlestick_from_bitbank(date_str))
+    for candlestick in latest_candlestick:
+        candlestick_list.append(
+            [
+                candlestick.open,
+                candlestick.high,
+                candlestick.low,
+                candlestick.close,
+                candlestick.volume,
+                candlestick.unixtime,
+            ]
+        )
 
     input_dataset = pd.DataFrame(
         candlestick_list,
@@ -284,6 +298,7 @@ def create_realtime_input_dataset():
     input_dataset = add_columns_close_log(input_dataset)
     input_dataset = add_columns_time(input_dataset)
     input_dataset = remove_missing_rows(input_dataset)
+
     logger.info("end: {:s}".format(inspect.currentframe().f_code.co_name))
     return input_dataset.tail(1)
 
