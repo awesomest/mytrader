@@ -87,15 +87,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},
 ]
 
-# Security
-SECURE_HSTS_SECONDS = 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SECURE_SSL_REDIRECT = True
-SECURE_REFERRER_POLICY = "same-origin"
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 

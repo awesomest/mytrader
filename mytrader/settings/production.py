@@ -9,6 +9,15 @@ DEBUG = False
 
 ALLOWED_HOSTS = ["mytrader-279617.appspot.com", "mytrader-279617.df.r.appspot.com"]
 
+# Security
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_SSL_REDIRECT = True
+SECURE_REFERRER_POLICY = "same-origin"
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
 # Running on production App Engine, so connect to Google Cloud SQL using
 # the unix socket at /cloudsql/<your-cloudsql-connection string>
 DATABASES = {
