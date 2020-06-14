@@ -60,7 +60,9 @@ def transact_realtime():
     data = dataset.create_realtime_input_dataset()
     data["predict"] = model.predict(data[TRAIN_COLUMNS])[0]
     predict_price = np.exp(data["close_log"] + data["predict"])
-    Prediction(unixtime=data.iloc[-1]["unixtime"], price=predict_price).save()
+    Prediction(
+        unixtime=data.iloc[-1]["unixtime"], price=predict_price
+    ).save()  # TODO: duplicate unixtime
     u.transact(data.iloc[-1])
     if u.total != old_asset:
         AssetHistory(
