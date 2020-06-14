@@ -98,10 +98,9 @@ class CandlestickTests(TestCase):
 
     def test_save_all_candlestick_last_minute(self):
         """test_save_all_candlestick_last_minute"""
-        # FIXME: Consider timezone
-        yesterday = dt.date.today() + dt.timedelta(-1)
+        today = dt.date.today()
         tomorrow = dt.date.today() + dt.timedelta(1)
-        date_range = dataset.get_date_range(yesterday, tomorrow)
+        date_range = dataset.get_date_range(today, tomorrow)
         dataset.save_all_candlestick(date_range)
 
         now_ts = dt.datetime.now().timestamp()
@@ -114,14 +113,11 @@ class CandlestickTests(TestCase):
 
     def test_save_all_candlestick_duplicated(self):
         """test_save_all_candlestick_duplicated"""
-        # FIXME: Consider timezone
-        yesterday = dt.date.today() + dt.timedelta(-1)
+        today = dt.date.today() + dt.timedelta(-1)
         tomorrow = dt.date.today() + dt.timedelta(1)
-        date_range = dataset.get_date_range(yesterday, tomorrow)
+        date_range = dataset.get_date_range(today, tomorrow)
         dataset.save_all_candlestick(date_range)
-        dataset.save_all_candlestick(
-            date_range
-        )  # TODO: Why not any exception are happen
+        dataset.save_all_candlestick(date_range)
         self.assertEqual(True, True)
 
 
