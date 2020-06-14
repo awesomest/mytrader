@@ -3,7 +3,6 @@ import inspect
 import datetime as dt
 from logging import getLogger, basicConfig, DEBUG
 from scipy import signal  # pylint: disable=import-error
-from bitbank.models import Candlestick
 import python_bitbankcc  # pylint: disable=import-error
 import pandas as pd  # pylint: disable=import-error
 import numpy as np  # pylint: disable=import-error
@@ -11,6 +10,7 @@ import matplotlib  # pylint: disable=import-error
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # pylint: disable=import-error,wrong-import-position
+from bitbank.models import Candlestick  # pylint: disable=wrong-import-position
 from . import graph  # pylint: disable=wrong-import-position,relative-beyond-top-level
 
 FORMATTER = "%(levelname)8s : %(asctime)s : %(message)s"
@@ -22,7 +22,11 @@ logger.setLevel(DEBUG)
 def select_latest_date():
     """select_latest_date"""
     try:
-        latest_unixtime = Candlestick.objects.order_by("-unixtime")[0].unixtime
+        latest_unixtime = (
+            Candlestick.objects.order_by("-unixtime")
+            .values("unixtime")
+            .all()[:1][0]["unixtime"]
+        )
     except (Candlestick.DoesNotExist, IndexError):
         oldest_date = dt.date(2017, 2, 14)  # TODO: 適当に決めた日付なので要改善
         return oldest_date

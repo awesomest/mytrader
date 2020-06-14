@@ -96,7 +96,11 @@ class CandlestickTests(TestCase):
         dataset.save_all_candlestick(date_range)
 
         now_ts = dt.datetime.now().timestamp()
-        latest_unixtime = Candlestick.objects.order_by("-unixtime")[0].unixtime
+        latest_unixtime = (
+            Candlestick.objects.order_by("-unixtime")
+            .values("unixtime")
+            .all()[:1][0]["unixtime"]
+        )
         self.assertTrue(now_ts - 60 < latest_unixtime <= now_ts)
 
     def test_save_all_candlestick_duplicated(self):
