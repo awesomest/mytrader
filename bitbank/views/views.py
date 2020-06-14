@@ -23,7 +23,7 @@ def index(request):
 
 def fetch(request):
     """fetch"""
-    today = dt.date.today()
+    today = dt.date.today() + dt.timedelta(-8)
     tomorrow = dt.date.today() + dt.timedelta(1)
     date_range = ds.get_date_range(today, tomorrow)
     ds.save_all_candlestick(date_range)

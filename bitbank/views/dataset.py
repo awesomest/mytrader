@@ -293,7 +293,7 @@ def create_realtime_input_dataset():
         candlestick_list,
         columns=["open", "high", "low", "close", "volume", "unixtime"],
     ).astype(float)
-    input_dataset["unixtime"] = input_dataset["unixtime"] / 1000
+    input_dataset["unixtime"] = input_dataset["unixtime"]
     input_dataset = convert_hlc_to_log(input_dataset)
     input_dataset = add_columns_close_log(input_dataset)
     input_dataset = add_columns_time(input_dataset)
