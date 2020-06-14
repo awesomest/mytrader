@@ -5,7 +5,7 @@
 * Python 3.7.0
 * virtualenv
 
-## Setup
+## Python
 ```sh
 $ virtualenv env
 $ source env/bin/activate
@@ -29,7 +29,7 @@ $ docker-compose up
 $ docker-compose down
 ```
 
-## Update
+### Update
 ```sh
 $ docker exec -it $CONTAINER_NAME sh -c 'mysqldump eraise -u eraise -peraise 2> /dev/null' > sql/init.sql
 ```
