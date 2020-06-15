@@ -90,7 +90,7 @@ def realtime_transact(request):
     today = dt.date.today()
     tomorrow = dt.date.today() + dt.timedelta(1)
     date_range = ds.get_date_range(today, tomorrow)
-    ds.save_all_candlestick(date_range)  # TODO: warning of duplicate entry
+    ds.save_all_candlestick(date_range)
 
     bitcoin.transact_realtime()
     return HttpResponse()

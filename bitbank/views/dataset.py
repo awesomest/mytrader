@@ -19,23 +19,26 @@ logger = getLogger(__name__)
 logger.setLevel(DEBUG)
 
 
-def select_latest_date():
-    """select_latest_date"""
+def select_latest_unixtime():
+    """select_latest_unixtime"""
     try:
-        latest_unixtime = (
+        return (
             Candlestick.objects.order_by("-unixtime")
             .values("unixtime")
             .all()[:1][0]["unixtime"]
         )
     except (Candlestick.DoesNotExist, IndexError):
-        oldest_date = dt.date(2017, 2, 14)  # TODO: 適当に決めた日付なので要改善
-        return oldest_date
-    else:
-        latest_datetime = dt.datetime.fromtimestamp(latest_unixtime)
-        latest_date = dt.date(
-            latest_datetime.year, latest_datetime.month, latest_datetime.day
-        )
-        return latest_date
+        return 0
+
+
+def select_latest_date():
+    """select_latest_date"""
+    latest_unixtime = select_latest_unixtime()
+    latest_datetime = dt.datetime.fromtimestamp(latest_unixtime)
+    latest_date = dt.date(
+        latest_datetime.year, latest_datetime.month, latest_datetime.day
+    )
+    return latest_date
 
 
 def fetch_latest_candlestick_from_db():
@@ -73,7 +76,7 @@ def get_date_range(start_date: dt.datetime, stop_date: dt.datetime):
         list: list of string of date
     """
     diff = (stop_date - start_date).days
-    return (start_date + dt.timedelta(i) for i in range(diff))
+    return [start_date + dt.timedelta(i) for i in range(diff)]
 
 
 def convert_candlestick_to_inserting(candlestick_list: list):
@@ -103,7 +106,20 @@ def save_all_candlestick(date_range):
     Insert all candlesticks into DB
     """
 
-    for date in date_range:
+    logger.info("date: {:%Y-%m-%d}".format(date_range[0]))
+    date_str = date_range[0].strftime("%Y%m%d")
+    latest_unixtime = select_latest_unixtime()
+    candlestick_list = fetch_candlestick_from_bitbank(date_str)
+    candlestick_df = pd.DataFrame(
+        candlestick_list,
+        columns=["open", "high", "low", "close", "volume", "unixtime"],
+    ).astype(float)
+    candlestick_df = candlestick_df[candlestick_df["unixtime"] > latest_unixtime * 1000]
+    candlestick_list_limited = candlestick_df.values.tolist()
+    insert_values = convert_candlestick_to_inserting(candlestick_list_limited)
+    Candlestick.objects.bulk_create(insert_values, ignore_conflicts=True)
+
+    for date in date_range[1:]:
         logger.info("date: {:%Y-%m-%d}".format(date))
         date_str = date.strftime("%Y%m%d")
         candlestick_list = fetch_candlestick_from_bitbank(date_str)
