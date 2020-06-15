@@ -51,7 +51,7 @@ class CandlestickTests(TestCase):
     def test_select_oldest_date(self):
         """test_select_oldest_date"""
         latest_date = dataset.select_latest_date()
-        self.assertEqual(latest_date, dt.date(2017, 2, 14))
+        self.assertEqual(latest_date, dt.date(1970, 1, 1))
 
     def test_select_last_date(self):
         """test_select_last_date"""
@@ -87,6 +87,15 @@ class CandlestickTests(TestCase):
         date_range = dataset.get_date_range(days_ago_2, yesterday)
         dataset.save_all_candlestick(date_range)
         self.assertEqual(Candlestick.objects.all().count(), 1440)
+
+    def test_save_1_day_only_new(self):
+        """test_save_1_day_only_new"""
+        create_latest_candlestick()
+        today = dt.date(2017, 6, 9)
+        tomorrow = today + dt.timedelta(1)
+        date_range = dataset.get_date_range(today, tomorrow)
+        dataset.save_all_candlestick(date_range)
+        self.assertLess(Candlestick.objects.all().count(), 10080)
 
     def test_save_last_7_days(self):
         """test_save_last_7_days"""

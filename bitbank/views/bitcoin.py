@@ -2,14 +2,16 @@
 import inspect
 import pickle
 from logging import getLogger, basicConfig, DEBUG
+import numpy as np  # pylint: disable=import-error
+import matplotlib  # pylint: disable=import-error
+from django.db import transaction
+from django.db.utils import IntegrityError
 from sklearn.linear_model import LinearRegression  # pylint: disable=import-error
 from sklearn.model_selection import train_test_split  # pylint: disable=import-error
 from bitbank.models import Prediction, AssetHistory
-import numpy as np  # pylint: disable=import-error
-import matplotlib  # pylint: disable=import-error
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # pylint: disable=import-error,wrong-import-position
+import matplotlib.pyplot as plt  # pylint: disable=import-error,wrong-import-position,ungrouped-imports,wrong-import-order
 from . import graph  # pylint: disable=wrong-import-position,relative-beyond-top-level
 from . import dataset  # pylint: disable=wrong-import-position,relative-beyond-top-level
 from . import user  # pylint: disable=wrong-import-position,relative-beyond-top-level
@@ -63,21 +65,24 @@ def transact_realtime():
 
     # TODO: Want to use get_or_create but error is happen
     try:
-        Prediction.objects.get(unixtime=data.iloc[-1]["unixtime"], price=predict_price)
-    except Prediction.DoesNotExist:
-        Prediction(unixtime=data.iloc[-1]["unixtime"], price=predict_price).save()
+        with transaction.atomic():
+            Prediction(unixtime=data.iloc[-1]["unixtime"], price=predict_price).save()
+    except IntegrityError:
+        pass
 
     u.transact(data.iloc[-1])
     if u.total != old_asset:
         # TODO: Want to use get_or_create but error is happen
         try:
-            AssetHistory.objects.get(
-                unixtime=data.iloc[-1]["unixtime"], yen=u.yen, btc=u.btc, asset=u.total
-            )
-        except Prediction.DoesNotExist:
-            AssetHistory(
-                unixtime=data.iloc[-1]["unixtime"], yen=u.yen, btc=u.btc, asset=u.total
-            ).save()
+            with transaction.atomic():
+                AssetHistory(
+                    unixtime=data.iloc[-1]["unixtime"],
+                    yen=u.yen,
+                    btc=u.btc,
+                    asset=u.total,
+                ).save()
+        except IntegrityError:
+            pass
 
 
 def create_model(data_train, label_train):
