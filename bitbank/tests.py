@@ -201,3 +201,16 @@ class PredictTests(TestCase):
 
         bitcoin.transact_realtime()
         self.assertEqual(Prediction.objects.all().count(), 1)
+
+    def test_transact_realtime_duplicate(self):
+        """test_transact_realtime_duplicate"""
+        week_ago = dt.date.today() + dt.timedelta(-7)
+        tomorrow = dt.date.today() + dt.timedelta(1)
+        date_range = dataset.get_date_range(week_ago, tomorrow)
+        dataset.save_all_candlestick(date_range)
+
+        create_asset_history()
+
+        bitcoin.transact_realtime()
+        bitcoin.transact_realtime()
+        self.assertEqual(Prediction.objects.all().count(), 1)
