@@ -60,14 +60,14 @@ def transact_realtime():
     data = dataset.create_realtime_input_dataset()
     data["predict"] = model.predict(data[TRAIN_COLUMNS])[0]
     predict_price = np.exp(data["close_log"] + data["predict"])
-    Prediction(
+    Prediction.objects.get_or_create(
         unixtime=data.iloc[-1]["unixtime"], price=predict_price
-    ).save()  # TODO: duplicate unixtime
+    )
     u.transact(data.iloc[-1])
     if u.total != old_asset:
-        AssetHistory(
+        AssetHistory.objects.get_or_create(
             unixtime=data.iloc[-1]["unixtime"], yen=u.yen, btc=u.btc, asset=u.total
-        ).save()
+        )
 
 
 def create_model(data_train, label_train):
