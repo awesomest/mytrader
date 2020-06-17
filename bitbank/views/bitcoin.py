@@ -22,9 +22,7 @@ logger = getLogger(__name__)
 logger.setLevel(DEBUG)
 
 TRAIN_COLUMNS = [
-    "day",
     "weekday",
-    "second",
     "volume",
     "open_log",
     "high_log",

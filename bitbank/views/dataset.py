@@ -246,14 +246,12 @@ def add_columns_time(data: pd.DataFrame, file_name=None):
         dataframe
     """
     logger.info("start: {:s}".format(inspect.currentframe().f_code.co_name))
-    if "second" in data.columns:
+    if "weekday" in data.columns:
         return data
 
     new_data = data.copy()
     timestamp = pd.Series([dt.datetime.fromtimestamp(i) for i in new_data["unixtime"]])
-    new_data["day"] = timestamp.dt.day
     new_data["weekday"] = timestamp.dt.dayofweek
-    new_data["second"] = (timestamp.dt.hour * 60 + timestamp.dt.minute) * 60
     if file_name is not None:
         new_data.to_csv(
             "bitbank/static/bitbank/datasets/" + file_name + ".csv", index=False,
