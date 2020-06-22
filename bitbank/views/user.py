@@ -1,5 +1,6 @@
 """user.py"""
 
+import pandas as pd  # pylint: disable=import-error
 from bitbank.models import AssetHistory
 from . import bitbank_app  # pylint: disable=relative-beyond-top-level
 
@@ -24,6 +25,7 @@ class BitcoinUser:
         self.update_total_assets(btc)
         self.target = 0  # 次の予定売買価格
         self.traded_btc = 0  # 前回の取引価格
+        self.asset_history = pd.DataFrame([])
         """
         TODO:
         diff_target = |target - btc|
@@ -32,7 +34,7 @@ class BitcoinUser:
         action_chance = diff_current / diff_target # 理想値との差のうち、どの程度近づいているか
         """
 
-    def buy_btc(self, price, amount):
+    def buy_btc(self, price, amount, unixtime):
         """
         Params:
             price (int): current price of BTC
@@ -40,9 +42,12 @@ class BitcoinUser:
         """
         self.yen -= price * amount
         self.btc += amount * (1 - bitbank_app.TRADING_FEE)
+        self.asset_history = self.asset_history.append(
+            {"unixtime": unixtime, "yen": self.yen, "btc": self.btc}, ignore_index=True
+        )
         self.update_total_assets(price)
 
-    def sell_btc(self, price, amount):
+    def sell_btc(self, price, amount, unixtime):
         """
         Params:
             price (int): current price of BTC
@@ -50,6 +55,9 @@ class BitcoinUser:
         """
         self.btc -= amount
         self.yen += price * amount * (1 - bitbank_app.TRADING_FEE)
+        self.asset_history = self.asset_history.append(
+            {"unixtime": unixtime, "yen": self.yen, "btc": self.btc}, ignore_index=True
+        )
         self.update_total_assets(price)
 
     def update_total_assets(self, price):
@@ -95,7 +103,7 @@ class BitcoinUser:
         action = self.decide_action(row)
         if action == 1:
             amount = self.yen / row["close"]
-            self.buy_btc(row["close"], amount)
+            self.buy_btc(row["close"], amount, row["unixtime"])
         elif action == -1:
             amount = self.btc
-            self.sell_btc(row["close"], amount)
+            self.sell_btc(row["close"], amount, row["unixtime"])
